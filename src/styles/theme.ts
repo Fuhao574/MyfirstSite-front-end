@@ -31,12 +31,12 @@ export const theme = {
     // 毛玻璃
     glassWhite: 'rgba(255, 255, 255, 0.72)',
     glassBorder: 'rgba(255, 255, 255, 0.5)',
-
-    // 阴影
-    shadowLight: '0 1px 3px rgba(0, 0, 0, 0.04)',
-    shadowMedium: '0 4px 20px rgba(0, 0, 0, 0.06)',
-    shadowHeavy: '0 8px 32px rgba(0, 0, 0, 0.08)',
   },
+
+  // 阴影
+  shadowLight: '0 1px 3px rgba(0, 0, 0, 0.04)',
+  shadowMedium: '0 4px 20px rgba(0, 0, 0, 0.06)',
+  shadowHeavy: '0 8px 32px rgba(0, 0, 0, 0.08)',
 
   borderRadius: {
     sm: '8px',

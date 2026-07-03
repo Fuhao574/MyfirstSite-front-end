@@ -159,6 +159,34 @@ export default function Skills() {
             </ProgressBarContainer>
           </SkillCard>
         ))}
+
+        {/* 听歌时长 - 小卡片（内容少） */}
+        <SkillCard>
+          <SkillHeader>
+            <SkillIcon>🎵</SkillIcon>
+            <SkillInfo>
+              <SkillName>听歌时长</SkillName>
+              <SkillLevel>本月累计</SkillLevel>
+            </SkillInfo>
+          </SkillHeader>
+          <ProgressBarContainer>
+            <ProgressBarFill width={isVisible ? 42 : 0} color="#EC4899" />
+          </ProgressBarContainer>
+        </SkillCard>
+
+        {/* 当月预算 - 小卡片 */}
+        <SkillCard>
+          <SkillHeader>
+            <SkillIcon>💳</SkillIcon>
+            <SkillInfo>
+              <SkillName>当月预算</SkillName>
+              <SkillLevel>66% 已使用 · 剩余 ¥1,720</SkillLevel>
+            </SkillInfo>
+          </SkillHeader>
+          <ProgressBarContainer>
+            <ProgressBarFill width={isVisible ? 66 : 0} color="#3B82F6" />
+          </ProgressBarContainer>
+        </SkillCard>
       </SkillsGrid>
     </SkillsSection>
   );
