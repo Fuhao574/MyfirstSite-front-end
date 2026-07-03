@@ -75,7 +75,7 @@ export default function Footer() {
     <FooterSection>
       <FooterContent>
         <Copyright>
-          &copy; {currentYear} Alex Chen. 使用 React + TypeScript 构建。
+          &copy; {currentYear} Fuhao574. 使用 React + TypeScript 构建。
         </Copyright>
         <BackToTop onClick={handleBackToTop} aria-label="返回顶部">
           <ArrowUp size={20} />

@@ -321,7 +321,7 @@ export default function Navbar() {
   return (
     <NavContainer isScrolled={isScrolled}>
       <Logo href="#" onClick={(e) => handleNavClick(e, '#')}>
-        AC
+        FH
       </Logo>
 
       <RightSection>

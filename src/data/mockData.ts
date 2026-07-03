@@ -13,10 +13,8 @@ export const navItems: NavItem[] = [
 
 // Hero 区域数据
 export const heroData = {
-  name: 'Alex Chen',
-  title: '全栈开发者',
-  tagline: '用代码构建优雅体验，让技术温暖生活',
-  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
+  name: 'Fuhao574',
+  avatar: '/src/assets/images/avatar.jpg',
 };
 
 // 关于我

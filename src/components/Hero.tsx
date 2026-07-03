@@ -1,9 +1,10 @@
 /**
  * Hero 区域组件
- * 居中显示圆形头像、姓名、职业标签、个性签名
+ * 居中显示圆形头像、姓名、打字机签名
  * 带有微妙的渐变背景和动态粒子效果
  */
 
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { heroData } from '../data/mockData';
@@ -41,15 +42,16 @@ const AvatarWrapper = styled.div`
   height: 160px;
   margin: 0 auto ${theme.spacing.xl};
 
-  /* 外圈光晕 */
+  /* 外圈光晕 - 更明亮柔和 */
   &::before {
     content: '';
     position: absolute;
-    inset: -8px;
+    inset: -6px;
     border-radius: ${theme.borderRadius.full};
     background: ${theme.colors.gradientBlue};
-    opacity: 0.15;
-    filter: blur(12px);
+    opacity: 0.25;
+    filter: blur(16px);
+    z-index: -1;
   }
 `;
 
@@ -58,13 +60,18 @@ const Avatar = styled.img`
   height: 100%;
   border-radius: ${theme.borderRadius.full};
   object-fit: cover;
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: ${theme.shadowMedium};
+  /* 纯白色边框，不透光，让头像更鲜明 */
+  border: 4px solid #ffffff;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   transition: ${theme.transitions.default};
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: ${theme.shadowHeavy};
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 `;
 
@@ -72,7 +79,7 @@ const Name = styled.h1`
   font-size: 48px;
   font-weight: 700;
   color: ${theme.colors.textPrimary};
-  margin-bottom: ${theme.spacing.sm};
+  margin-bottom: ${theme.spacing.lg};
   letter-spacing: -1px;
   line-height: 1.2;
 
@@ -81,33 +88,88 @@ const Name = styled.h1`
   }
 `;
 
-const Title = styled.span`
-  display: inline-block;
-  font-size: 18px;
-  font-weight: 500;
-  color: ${theme.colors.accentBlue};
-  background: rgba(99, 102, 241, 0.08);
-  padding: ${theme.spacing.sm} ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.full};
-  margin-bottom: ${theme.spacing.lg};
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 16px;
-  }
-`;
-
-const Tagline = styled.p`
-  font-size: 20px;
-  font-weight: 300;
+/* ============================================
+   打字机效果组件
+   ============================================ */
+const TypewriterContainer = styled.div`
+  font-size: 22px;
+  font-weight: 400;
   color: ${theme.colors.textSecondary};
   line-height: 1.6;
-  max-width: 480px;
-  margin: 0 auto;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     font-size: 18px;
   }
 `;
+
+const TypedText = styled.span`
+  font-style: italic;
+  letter-spacing: 0.5px;
+`;
+
+const Cursor = styled.span<{ blink: boolean }>`
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: ${theme.colors.accentBlue};
+  margin-left: 3px;
+  vertical-align: text-bottom;
+  opacity: ${({ blink }) => (blink ? 1 : 0)};
+  transition: opacity 0.1s ease-out;
+`;
+
+/* 打字机 Hook */
+function useTypewriter(text: string, speed: number = 100, delay: number = 800) {
+  const [displayed, setDisplayed] = useState('');
+  const [cursorBlink, setCursorBlink] = useState(false);
+  const [isDone, setIsDone] = useState(false);
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayed('');
+    setIsDone(false);
+    setCursorBlink(false);
+
+    const startTimeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        index++;
+        setDisplayed(text.slice(0, index));
+
+        if (index >= text.length) {
+          clearInterval(interval);
+          setIsDone(true);
+          // 打完字后光标开始闪烁
+          const blinkInterval = setInterval(() => {
+            setCursorBlink((prev) => !prev);
+          }, 530);
+          return () => clearInterval(blinkInterval);
+        }
+      }, speed);
+
+      return () => clearInterval(interval);
+    }, delay);
+
+    return () => clearTimeout(startTimeout);
+  }, [text, speed, delay]);
+
+  return { displayed, cursorBlink, isDone };
+}
+
+function Typewriter({ text, speed = 90 }: { text: string; speed?: number }) {
+  const { displayed, cursorBlink, isDone } = useTypewriter(text, speed);
+
+  return (
+    <TypewriterContainer>
+      <TypedText>"{displayed}"</TypedText>
+      <Cursor blink={isDone ? cursorBlink : true} />
+    </TypewriterContainer>
+  );
+}
 
 const ScrollIndicator = styled.div`
   position: absolute;
@@ -163,8 +225,7 @@ export default function Hero() {
           <Avatar src={heroData.avatar} alt={heroData.name} />
         </AvatarWrapper>
         <Name>{heroData.name}</Name>
-        <Title>{heroData.title}</Title>
-        <Tagline>{heroData.tagline}</Tagline>
+        <Typewriter text="The world has no shortage of adults" speed={85} />
       </Content>
       <ScrollIndicator>
         <span>Scroll</span>
