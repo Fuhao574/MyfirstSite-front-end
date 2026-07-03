@@ -7,10 +7,7 @@ import styled from '@emotion/styled';
 import { theme } from './styles/theme';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import About from './components/About';
 import Skills from './components/Skills';
-import Projects from './components/Projects';
-import Contact from './components/Contact';
 import Footer from './components/Footer';
 
 const AppContainer = styled.div`
@@ -37,12 +34,6 @@ export default function App() {
       <Hero />
       <Divider />
       <Skills />
-      <Divider />
-      <Projects />
-      <Divider />
-      <Contact />
-      <Divider />
-      <About />
       <Footer />
     </AppContainer>
   );

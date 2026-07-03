@@ -4,31 +4,15 @@
 
 import type { Skill, Project, SocialLink, NavItem } from '../types';
 
-// 导航项（关于已移至页面底部，不在顶栏导航中）
+// 导航项
 export const navItems: NavItem[] = [
   { id: 'skills', label: '技能', href: '#skills' },
-  { id: 'projects', label: '项目', href: '#projects' },
-  { id: 'contact', label: '联系', href: '#contact' },
 ];
 
 // Hero 区域数据
 export const heroData = {
   name: 'Fuhao574',
-  avatar: '/src/assets/images/avatar.jpg',
-};
-
-// 关于我
-export const aboutData = {
-  title: '关于我',
-  description:
-    '我是一名热爱创造的全栈开发者，拥有 5 年的 Web 和移动端开发经验。专注于构建高性能、可访问且视觉精致的应用程序。我相信好的代码不仅要能运行，更要优雅易读。在工作之余，我喜欢探索新技术、撰写技术博客，以及参与开源社区。',
-  image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop',
-  highlights: [
-    { icon: '💻', label: '5年开发经验' },
-    { icon: '🚀', label: '20+ 上线项目' },
-    { icon: '📚', label: '技术博客作者' },
-    { icon: '🌍', label: '开源贡献者' },
-  ],
+  avatar: '/avatar.png',
 };
 
 // 技能数据
@@ -45,7 +29,7 @@ export const skillsData: Skill[] = [
   { id: 'aws', name: 'AWS', icon: '☁️', proficiency: 70, color: '#FF9900' },
 ];
 
-// 项目数据
+// 项目数据（保留类型定义兼容，当前未使用）
 export const projectsData: Project[] = [
   {
     id: '1',
@@ -81,7 +65,7 @@ export const projectsData: Project[] = [
   },
 ];
 
-// 社交链接
+// 社交链接（保留类型定义兼容，当前未使用）
 export const socialLinks: SocialLink[] = [
   { id: 'github', name: 'GitHub', url: 'https://github.com', icon: 'github' },
   { id: 'twitter', name: 'Twitter', url: 'https://twitter.com', icon: 'twitter' },
