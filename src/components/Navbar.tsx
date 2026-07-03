@@ -9,7 +9,7 @@ import styled from '@emotion/styled';
 import { useScrollPosition } from '../hooks/useScrollPosition';
 import { navItems } from '../data/mockData';
 import { theme } from '../styles/theme';
-import { Menu, X, Sun, Moon, Globe, Download } from 'lucide-react';
+import { Menu, X, Sun, Moon, Globe } from 'lucide-react';
 
 const NavContainer = styled.nav<{ isScrolled: boolean }>`
   position: fixed;
@@ -223,70 +223,6 @@ const IconButton = styled.button<{ variant?: 'blue' | 'yellow' | 'teal' }>`
   }
 `;
 
-/* 带文字标签的 iCost 风格按钮 */
-const ActionButton = styled.a<{ variant?: 'blue' | 'yellow' | 'teal' }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 14px;
-  border-radius: ${theme.borderRadius.full};
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
-  transition: ${theme.transitions.fast};
-  position: relative;
-  overflow: hidden;
-
-  background: ${({ variant }) => {
-    switch (variant) {
-      case 'yellow':
-        return 'linear-gradient(135deg, #FFB800 0%, #FF9500 100%)';
-      case 'teal':
-        return 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)';
-      case 'blue':
-      default:
-        return 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)';
-    }
-  }};
-
-  box-shadow: ${({ variant }) => {
-    switch (variant) {
-      case 'yellow':
-        return '0 2px 8px rgba(255, 184, 0, 0.35)';
-      case 'teal':
-        return '0 2px 8px rgba(20, 184, 166, 0.35)';
-      case 'blue':
-      default:
-        return '0 2px 8px rgba(59, 130, 246, 0.35)';
-    }
-  }};
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: ${({ variant }) => {
-      switch (variant) {
-        case 'yellow':
-          return '0 4px 14px rgba(255, 184, 0, 0.45)';
-        case 'teal':
-          return '0 4px 14px rgba(20, 184, 166, 0.45)';
-        case 'blue':
-        default:
-          return '0 4px 14px rgba(59, 130, 246, 0.45)';
-      }
-    }};
-  }
-
-  &:active {
-    transform: scale(0.96);
-  }
-
-  svg {
-    width: 15px;
-    height: 15px;
-    stroke-width: 2.5;
-  }
-`;
-
 const MenuButton = styled.button`
   display: none;
   padding: ${theme.spacing.sm};
@@ -350,19 +286,6 @@ export default function Navbar() {
           <IconButton variant="teal" aria-label="切换语言">
             <Globe size={17} />
           </IconButton>
-
-          {/* 下载简历 - 黄色（iCost 记账按钮同款配色） */}
-          <ActionButton
-            variant="yellow"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              alert('简历下载功能即将上线！');
-            }}
-          >
-            <Download size={15} />
-            简历
-          </ActionButton>
         </ButtonPanel>
 
         <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="菜单">

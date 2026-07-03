@@ -171,6 +171,83 @@ function Typewriter({ text, speed = 90 }: { text: string; speed?: number }) {
   );
 }
 
+/* ============================================
+   iCost 风格小卡片组
+   ============================================ */
+const WidgetsRow = styled.div`
+  display: flex;
+  gap: ${theme.spacing.md};
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: ${theme.spacing.xl};
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    gap: ${theme.spacing.sm};
+  }
+`;
+
+const WidgetCard = styled.div<{ accent: string }>`
+  background: ${theme.colors.bgSecondary};
+  border-radius: ${theme.borderRadius.lg};
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
+  min-width: 130px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: ${theme.transitions.default};
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${theme.spacing.xs};
+  position: relative;
+  overflow: hidden;
+
+  /* 左侧装饰条 */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: ${({ accent }) => accent};
+    opacity: 0.6;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+`;
+
+const WidgetHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: ${theme.colors.textTertiary};
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+`;
+
+const WidgetValue = styled.span<{ color: string }>`
+  font-size: 22px;
+  font-weight: 700;
+  color: ${({ color }) => color};
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+`;
+
+const WidgetLabel = styled.span`
+  font-size: 13px;
+  color: ${theme.colors.textSecondary};
+  font-weight: 400;
+`;
+
 const ScrollIndicator = styled.div`
   position: absolute;
   bottom: 40px;
@@ -226,6 +303,27 @@ export default function Hero() {
         </AvatarWrapper>
         <Name>{heroData.name}</Name>
         <Typewriter text="The world has no shortage of adults" speed={85} />
+
+        {/* iCost 风格轻量小卡片 */}
+        <WidgetsRow>
+          <WidgetCard accent="#3B82F6">
+            <WidgetHeader>💳 今日消费</WidgetHeader>
+            <WidgetValue color="#3B82F6">¥128.50</WidgetValue>
+            <WidgetLabel>比昨天 -15%</WidgetLabel>
+          </WidgetCard>
+
+          <WidgetCard accent="#F97316">
+            <WidgetHeader>☕ 专注时长</WidgetHeader>
+            <WidgetValue color="#F97316">3h 42m</WidgetValue>
+            <WidgetLabel>今日目标 4h</WidgetLabel>
+          </WidgetCard>
+
+          <WidgetCard accent="#14B8A6">
+            <WidgetHeader>🔥 连续打卡</WidgetHeader>
+            <WidgetValue color="#14B8A6">21 天</WidgetValue>
+            <WidgetLabel>本月最高记录</WidgetLabel>
+          </WidgetCard>
+        </WidgetsRow>
       </Content>
       <ScrollIndicator>
         <span>Scroll</span>
