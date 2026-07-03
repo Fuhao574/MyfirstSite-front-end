@@ -12,7 +12,7 @@ export const navItems: NavItem[] = [
 // Hero 区域数据
 export const heroData = {
   name: 'Fuhao574',
-  avatar: '/avatar.png',
+  avatar: '/src/assets/images/avatar.jpg',
 };
 
 // 技能数据
