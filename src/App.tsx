@@ -36,13 +36,13 @@ export default function App() {
       <Navbar />
       <Hero />
       <Divider />
-      <About />
-      <Divider />
       <Skills />
       <Divider />
       <Projects />
       <Divider />
       <Contact />
+      <Divider />
+      <About />
       <Footer />
     </AppContainer>
   );

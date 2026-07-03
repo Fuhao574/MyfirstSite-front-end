@@ -4,9 +4,8 @@
 
 import type { Skill, Project, SocialLink, NavItem } from '../types';
 
-// 导航项
+// 导航项（关于已移至页面底部，不在顶栏导航中）
 export const navItems: NavItem[] = [
-  { id: 'about', label: '关于', href: '#about' },
   { id: 'skills', label: '技能', href: '#skills' },
   { id: 'projects', label: '项目', href: '#projects' },
   { id: 'contact', label: '联系', href: '#contact' },
