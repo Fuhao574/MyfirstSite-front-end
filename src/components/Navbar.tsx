@@ -11,7 +11,7 @@ import { navItems } from '../data/mockData';
 import { theme } from '../styles/theme';
 import {
   Menu, X, Sun, Moon, Globe,
-  Home, BookOpen, Archive, Users, FolderOpen, MessageSquare, User,
+  Home, BookOpen, Archive, Users, FolderOpen, User,
 } from 'lucide-react';
 
 /* 动画 */
@@ -42,10 +42,9 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   right: 0;
   z-index: 1000;
   height: 72px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
-  gap: ${theme.spacing.lg};
+  justify-content: space-between;
   padding: 0 ${theme.spacing.xl};
   max-width: 1200px;
   margin: 0 auto;
@@ -64,8 +63,6 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   @media (max-width: ${theme.breakpoints.tablet}) {
     padding: 0 ${theme.spacing.md};
     height: 64px;
-    display: flex;
-    justify-content: space-between;
   }
 `;
 
@@ -163,9 +160,11 @@ const RightSection = styled.div`
 `;
 
 const NavLinks = styled.ul<{ isOpen: boolean }>`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: ${theme.spacing.md};
   list-style: none;
 
@@ -175,6 +174,7 @@ const NavLinks = styled.ul<{ isOpen: boolean }>`
     left: 0;
     right: 0;
     bottom: 0;
+    transform: none;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
@@ -428,7 +428,6 @@ export default function Navbar() {
               {item.icon === 'Archive' && <Archive />}
               {item.icon === 'Users' && <Users />}
               {item.icon === 'FolderOpen' && <FolderOpen />}
-              {item.icon === 'MessageSquare' && <MessageSquare />}
               {item.icon === 'User' && <User />}
               {item.label}
             </NavLink>
