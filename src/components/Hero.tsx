@@ -1,7 +1,8 @@
 /**
  * Hero 区域组件
- * 居中显示圆形头像、姓名、打字机签名
- * 带有微妙的渐变背景和动态粒子效果
+ * 左侧：个人信息卡片（头像+名字+签名）
+ * 右侧：访客信息小玩具（IP、时间等）
+ * 使用 iCost 风格
  */
 
 import { useState, useEffect } from 'react';
@@ -9,6 +10,7 @@ import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { heroData } from '../data/mockData';
 import ParticleBackground from './ParticleBackground';
+import { MapPin, Clock, Globe, Wifi } from 'lucide-react';
 
 const HeroSection = styled.section`
   position: relative;
@@ -18,7 +20,6 @@ const HeroSection = styled.section`
   justify-content: center;
   overflow: hidden;
 
-  /* 微妙的渐变背景 */
   background: linear-gradient(
     180deg,
     #eef2ff 0%,
@@ -28,29 +29,52 @@ const HeroSection = styled.section`
   );
 `;
 
-const Content = styled.div`
+const HeroGrid = styled.div`
   position: relative;
   z-index: 1;
-  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${theme.spacing['2xl']};
+  align-items: center;
+  max-width: 1000px;
+  width: 100%;
   padding: ${theme.spacing.xl};
-  max-width: 600px;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr;
+    gap: ${theme.spacing.xl};
+    text-align: center;
+  }
+`;
+
+/* ============================================
+   左侧：个人信息卡片
+   ============================================ */
+const ProfileCard = styled.div`
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${theme.spacing.lg};
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    align-items: center;
+  }
 `;
 
 const AvatarWrapper = styled.div`
   position: relative;
-  width: 160px;
-  height: 160px;
-  margin: 0 auto ${theme.spacing.xl};
+  width: 120px;
+  height: 120px;
 
-  /* 外圈光晕 - 更明亮柔和 */
   &::before {
     content: '';
     position: absolute;
-    inset: -6px;
+    inset: -5px;
     border-radius: ${theme.borderRadius.full};
     background: ${theme.colors.gradientBlue};
-    opacity: 0.25;
-    filter: blur(16px);
+    opacity: 0.2;
+    filter: blur(14px);
     z-index: -1;
   }
 `;
@@ -60,50 +84,38 @@ const Avatar = styled.img`
   height: 100%;
   border-radius: ${theme.borderRadius.full};
   object-fit: cover;
-  /* 纯白色边框，不透光，让头像更鲜明 */
-  border: 4px solid #ffffff;
+  border: 3px solid #ffffff;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.08),
     0 0 0 1px rgba(0, 0, 0, 0.04);
-  transition: ${theme.transitions.default};
-
-  &:hover {
-    transform: scale(1.05);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.12),
-      0 0 0 1px rgba(0, 0, 0, 0.04);
-  }
 `;
 
 const Name = styled.h1`
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 700;
   color: ${theme.colors.textPrimary};
-  margin-bottom: ${theme.spacing.lg};
   letter-spacing: -1px;
   line-height: 1.2;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 36px;
+    font-size: 28px;
   }
 `;
 
-/* ============================================
-   打字机效果组件
-   ============================================ */
+/* 打字机效果 */
 const TypewriterContainer = styled.div`
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 400;
   color: ${theme.colors.textSecondary};
   line-height: 1.6;
-  min-height: 36px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   flex-wrap: wrap;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 18px;
+    font-size: 16px;
+    justify-content: center;
   }
 `;
 
@@ -121,6 +133,91 @@ const Cursor = styled.span<{ blink: boolean }>`
   vertical-align: text-bottom;
   opacity: ${({ blink }) => (blink ? 1 : 0)};
   transition: opacity 0.1s ease-out;
+`;
+
+/* ============================================
+   右侧：访客信息小玩具
+   ============================================ */
+const ToysPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.md};
+`;
+
+/* iCost 风格小卡片 */
+const ToyCard = styled.div<{ accent: string }>`
+  background: ${theme.colors.bgSecondary};
+  border-radius: ${theme.borderRadius.lg};
+  padding: ${theme.spacing.md} ${theme.spacing.lg};
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: ${theme.transitions.default};
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.md};
+  position: relative;
+  overflow: hidden;
+
+  /* 左侧装饰条 */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: ${({ accent }) => accent};
+    opacity: 0.6;
+  }
+
+  &:hover {
+    transform: translateX(4px);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+`;
+
+const ToyIcon = styled.div<{ bg: string }>`
+  width: 40px;
+  height: 40px;
+  border-radius: ${theme.borderRadius.full};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ bg }) => bg};
+  color: white;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+  }
+`;
+
+const ToyInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const ToyLabel = styled.span`
+  font-size: 12px;
+  color: ${theme.colors.textTertiary};
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+`;
+
+const ToyValue = styled.span<{ color: string }>`
+  font-size: 18px;
+  font-weight: 700;
+  color: ${({ color }) => color};
+  line-height: 1.2;
+  letter-spacing: -0.3px;
 `;
 
 /* 打字机 Hook */
@@ -143,7 +240,6 @@ function useTypewriter(text: string, speed: number = 100, delay: number = 800) {
         if (index >= text.length) {
           clearInterval(interval);
           setIsDone(true);
-          // 打完字后光标开始闪烁
           const blinkInterval = setInterval(() => {
             setCursorBlink((prev) => !prev);
           }, 530);
@@ -171,82 +267,62 @@ function Typewriter({ text, speed = 90 }: { text: string; speed?: number }) {
   );
 }
 
-/* ============================================
-   iCost 风格小卡片组
-   ============================================ */
-const WidgetsRow = styled.div`
-  display: flex;
-  gap: ${theme.spacing.md};
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: ${theme.spacing.xl};
+/* 获取访客地区 */
+function useVisitorLocation() {
+  const [location, setLocation] = useState('获取中...');
 
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    gap: ${theme.spacing.sm};
-  }
-`;
+  useEffect(() => {
+    fetch('https://ipapi.co/json/')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.city && data.country_name) {
+          setLocation(`${data.city}, ${data.country_name}`);
+        } else if (data.city) {
+          setLocation(data.city);
+        } else {
+          setLocation('未知地区');
+        }
+      })
+      .catch(() => setLocation('未知地区'));
+  }, []);
 
-const WidgetCard = styled.div<{ accent: string }>`
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  min-width: 130px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 4px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  transition: ${theme.transitions.default};
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${theme.spacing.xs};
-  position: relative;
-  overflow: hidden;
+  return location;
+}
 
-  /* 左侧装饰条 */
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: ${({ accent }) => accent};
-    opacity: 0.6;
-  }
+/* 实时时间 Hook */
+function useCurrentTime() {
+  const [time, setTime] = useState(new Date());
 
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.08),
-      0 8px 24px rgba(0, 0, 0, 0.06);
-  }
-`;
+  useEffect(() => {
+    const interval = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-const WidgetHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: ${theme.colors.textTertiary};
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-`;
+  const hours = String(time.getHours()).padStart(2, '0');
+  const minutes = String(time.getMinutes()).padStart(2, '0');
+  const seconds = String(time.getSeconds()).padStart(2, '0');
 
-const WidgetValue = styled.span<{ color: string }>`
-  font-size: 22px;
-  font-weight: 700;
-  color: ${({ color }) => color};
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-`;
+  return { timeStr: `${hours}:${minutes}:${seconds}`, dateStr: time.toLocaleDateString('zh-CN') };
+}
 
-const WidgetLabel = styled.span`
-  font-size: 13px;
-  color: ${theme.colors.textSecondary};
-  font-weight: 400;
-`;
+/* 浏览器信息 */
+function useBrowserInfo() {
+  const [info, setInfo] = useState('检测中...');
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    let browser = '未知浏览器';
+    if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Safari')) browser = 'Safari';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Edge')) browser = 'Edge';
+
+    const platform = navigator.platform || '未知平台';
+    setInfo(`${browser} · ${platform}`);
+  }, []);
+
+  return info;
+}
 
 const ScrollIndicator = styled.div`
   position: absolute;
@@ -261,19 +337,9 @@ const ScrollIndicator = styled.div`
   animation: bounce 2s infinite ease-out;
 
   @keyframes bounce {
-    0%,
-    20%,
-    50%,
-    80%,
-    100% {
-      transform: translateX(-50%) translateY(0);
-    }
-    40% {
-      transform: translateX(-50%) translateY(-8px);
-    }
-    60% {
-      transform: translateX(-50%) translateY(-4px);
-    }
+    0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+    40% { transform: translateX(-50%) translateY(-8px); }
+    60% { transform: translateX(-50%) translateY(-4px); }
   }
 
   span {
@@ -282,7 +348,6 @@ const ScrollIndicator = styled.div`
     text-transform: uppercase;
   }
 
-  /* 下滑箭头 */
   &::after {
     content: '';
     width: 6px;
@@ -294,37 +359,66 @@ const ScrollIndicator = styled.div`
 `;
 
 export default function Hero() {
+  const location = useVisitorLocation();
+  const { timeStr, dateStr } = useCurrentTime();
+  const browserInfo = useBrowserInfo();
+
   return (
     <HeroSection id="hero">
       <ParticleBackground />
-      <Content>
-        <AvatarWrapper>
-          <Avatar src={heroData.avatar} alt={heroData.name} />
-        </AvatarWrapper>
-        <Name>{heroData.name}</Name>
-        <Typewriter text="The world has no shortage of adults" speed={85} />
+      <HeroGrid>
+        {/* 左侧：个人信息卡片 */}
+        <ProfileCard>
+          <AvatarWrapper>
+            <Avatar src={heroData.avatar} alt={heroData.name} />
+          </AvatarWrapper>
+          <Name>{heroData.name}</Name>
+          <Typewriter text="The world has no shortage of adults" speed={85} />
+        </ProfileCard>
 
-        {/* iCost 风格轻量小卡片 */}
-        <WidgetsRow>
-          <WidgetCard accent="#3B82F6">
-            <WidgetHeader>💳 今日消费</WidgetHeader>
-            <WidgetValue color="#3B82F6">¥128.50</WidgetValue>
-            <WidgetLabel>比昨天 -15%</WidgetLabel>
-          </WidgetCard>
+        {/* 右侧：访客信息小玩具 */}
+        <ToysPanel>
+          <ToyCard accent="#3B82F6">
+            <ToyIcon bg="linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)">
+              <Wifi />
+            </ToyIcon>
+            <ToyInfo>
+              <ToyLabel>你的位置</ToyLabel>
+              <ToyValue color="#3B82F6">{location}</ToyValue>
+            </ToyInfo>
+          </ToyCard>
 
-          <WidgetCard accent="#F97316">
-            <WidgetHeader>☕ 专注时长</WidgetHeader>
-            <WidgetValue color="#F97316">3h 42m</WidgetValue>
-            <WidgetLabel>今日目标 4h</WidgetLabel>
-          </WidgetCard>
+          <ToyCard accent="#F97316">
+            <ToyIcon bg="linear-gradient(135deg, #F97316 0%, #EA580C 100%)">
+              <Clock />
+            </ToyIcon>
+            <ToyInfo>
+              <ToyLabel>当前时间</ToyLabel>
+              <ToyValue color="#F97316">{timeStr}</ToyValue>
+            </ToyInfo>
+          </ToyCard>
 
-          <WidgetCard accent="#14B8A6">
-            <WidgetHeader>🔥 连续打卡</WidgetHeader>
-            <WidgetValue color="#14B8A6">21 天</WidgetValue>
-            <WidgetLabel>本月最高记录</WidgetLabel>
-          </WidgetCard>
-        </WidgetsRow>
-      </Content>
+          <ToyCard accent="#14B8A6">
+            <ToyIcon bg="linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)">
+              <Globe />
+            </ToyIcon>
+            <ToyInfo>
+              <ToyLabel>浏览器 / 平台</ToyLabel>
+              <ToyValue color="#14B8A6">{browserInfo}</ToyValue>
+            </ToyInfo>
+          </ToyCard>
+
+          <ToyCard accent="#8B5CF6">
+            <ToyIcon bg="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)">
+              <MapPin />
+            </ToyIcon>
+            <ToyInfo>
+              <ToyLabel>访问日期</ToyLabel>
+              <ToyValue color="#8B5CF6">{dateStr}</ToyValue>
+            </ToyInfo>
+          </ToyCard>
+        </ToysPanel>
+      </HeroGrid>
       <ScrollIndicator>
         <span>Scroll</span>
       </ScrollIndicator>
