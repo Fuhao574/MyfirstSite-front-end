@@ -4,13 +4,11 @@
  */
 
 import styled from '@emotion/styled';
-import { theme } from './styles/theme';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 
 const AppContainer = styled.div`
   min-height: 100vh;
-  background: ${theme.colors.bgPrimary};
 `;
 
 export default function App() {

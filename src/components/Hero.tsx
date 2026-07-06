@@ -1,6 +1,6 @@
 /**
  * Hero 区域组件
- * 个人区域居中（约40%宽）+ 下方6张卡片网格
+ * 布局：左(头像+名字+签名 靠左) + 中(小卡片) + 右(日历卡片)
  */
 
 import { useState, useEffect } from 'react';
@@ -9,6 +9,7 @@ import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { heroData } from '../data/mockData';
 import ParticleBackground from './ParticleBackground';
+import CalendarCard from './CalendarCard';
 import {
   MapPin, Clock, Globe, Wifi, Music, Wallet,
 } from 'lucide-react';
@@ -29,9 +30,10 @@ const shimmer = keyframes`
   100% { background-position: 200% center; }
 `;
 
-/* Hero 容器 — 取消固定高度 */
+/* Hero 容器 */
 const HeroSection = styled.section`
   position: relative;
+  min-height: 100vh;
   padding: 120px ${theme.spacing.xl} ${theme.spacing['4xl']};
   overflow: hidden;
 
@@ -58,21 +60,42 @@ const Content = styled.div`
 `;
 
 /* ============================================
-   个人区域：居中，约40%宽度
+   三栏布局
    ============================================ */
+const HeroLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: ${theme.spacing.xl};
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: ${theme.spacing.lg};
+  }
+`;
+
+/* 左栏：个人区域靠左 */
 const ProfileArea = styled.div`
-  max-width: 480px;
-  width: 100%;
-  margin: 0 auto ${theme.spacing['2xl']};
-  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: ${theme.spacing.lg};
   animation: ${fadeInUp} 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+`;
 
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    margin-bottom: ${theme.spacing.xl};
+const AvatarWrapper = styled.div`
+  position: relative;
+  width: 120px;
+  height: 120px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: ${theme.borderRadius.full};
+    background: ${theme.colors.gradientBlue};
+    animation: ${pulseGlow} 3s ease-in-out infinite;
+    z-index: -1;
   }
 `;
 
@@ -92,43 +115,26 @@ const Avatar = styled.img`
   }
 `;
 
-const AvatarWrapper = styled.div`
-  position: relative;
-  width: 150px;
-  height: 150px;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: ${theme.borderRadius.full};
-    background: ${theme.colors.gradientBlue};
-    animation: ${pulseGlow} 3s ease-in-out infinite;
-    z-index: -1;
-  }
-`;
-
 const Name = styled.h1`
-  font-size: 42px;
+  font-size: 36px;
   font-weight: 700;
   color: #1A1A2E;
   letter-spacing: -1px;
   line-height: 1.2;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 32px;
+    font-size: 28px;
   }
 `;
 
 const TypewriterContainer = styled.div`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 400;
   color: ${theme.colors.textSecondary};
   line-height: 1.6;
-  min-height: 30px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   flex-wrap: wrap;
 `;
 
@@ -149,15 +155,15 @@ const Cursor = styled.span<{ blink: boolean }>`
 `;
 
 /* ============================================
-   卡片网格：6张卡片
+   中栏：小卡片网格
    ============================================ */
 const CardsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${theme.spacing.lg};
+  grid-template-columns: 1fr 1fr;
+  gap: ${theme.spacing.md};
 
   @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
   }
 
   @media (max-width: ${theme.breakpoints.mobile}) {
@@ -173,7 +179,7 @@ const cardEnter = keyframes`
 const Card = styled.div<{ accent: string; delay: number }>`
   background: ${theme.colors.bgSecondary};
   border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
+  padding: ${theme.spacing.md};
   box-shadow: ${theme.shadowLight};
   border: 1px solid rgba(0, 0, 0, 0.04);
   transition: ${theme.transitions.default};
@@ -185,7 +191,6 @@ const Card = styled.div<{ accent: string; delay: number }>`
     ${({ delay }) => 0.4 + delay * 0.08}s
     cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
-  /* 左侧装饰条 */
   &::after {
     content: '';
     position: absolute;
@@ -208,13 +213,13 @@ const Card = styled.div<{ accent: string; delay: number }>`
 const CardHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: ${theme.spacing.md};
-  margin-bottom: ${theme.spacing.md};
+  gap: ${theme.spacing.sm};
+  margin-bottom: ${theme.spacing.sm};
 `;
 
 const CardIcon = styled.div<{ bg: string }>`
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
@@ -224,8 +229,8 @@ const CardIcon = styled.div<{ bg: string }>`
   flex-shrink: 0;
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     stroke-width: 2.2;
   }
 `;
@@ -234,32 +239,35 @@ const CardInfo = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  min-width: 0;
 `;
 
 const CardLabel = styled.span`
-  font-size: 12px;
+  font-size: 11px;
   color: ${theme.colors.textTertiary};
   font-weight: 500;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
 `;
 
 const CardValue = styled.span<{ color: string }>`
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: ${({ color }) => color};
   line-height: 1.2;
   letter-spacing: -0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ProgressBarContainer = styled.div`
   width: 100%;
-  height: 6px;
+  height: 5px;
   background: ${theme.colors.bgTertiary};
   border-radius: ${theme.borderRadius.full};
   overflow: hidden;
-  margin-top: ${theme.spacing.sm};
+  margin-top: ${theme.spacing.xs};
 `;
 
 const ProgressBarFill = styled.div<{ width: number; color: string }>`
@@ -272,9 +280,9 @@ const ProgressBarFill = styled.div<{ width: number; color: string }>`
 `;
 
 const CardSub = styled.span`
-  font-size: 13px;
+  font-size: 11px;
   color: ${theme.colors.textSecondary};
-  margin-top: ${theme.spacing.xs};
+  margin-top: 2px;
 `;
 
 /* ============================================
@@ -369,9 +377,7 @@ function useBrowserInfo() {
     else if (ua.includes('Firefox')) browser = 'Firefox';
     else if (ua.includes('Edge')) browser = 'Edge';
 
-    // 检测平台架构
     const detectPlatform = async () => {
-      // 方法1: userAgentData (现代浏览器)
       if ((navigator as any).userAgentData?.getHighEntropyValues) {
         try {
           const data = await (navigator as any).userAgentData.getHighEntropyValues(['architecture']);
@@ -380,7 +386,6 @@ function useBrowserInfo() {
         } catch (e) {}
       }
 
-      // 方法2: WebGL GPU 检测 (Firefox 等)
       if (navigator.platform === 'MacIntel') {
         try {
           const canvas = document.createElement('canvas');
@@ -409,8 +414,6 @@ function useBrowserInfo() {
   return info;
 }
 
-
-
 export default function Hero() {
   const location = useVisitorLocation();
   const { timeStr, dateStr } = useCurrentTime();
@@ -434,7 +437,7 @@ export default function Hero() {
     {
       accent: '#14B8A6',
       icon: <Globe />,
-      label: '浏览器 / 平台',
+      label: '浏览器',
       value: browserInfo,
       iconBg: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
     },
@@ -469,35 +472,42 @@ export default function Hero() {
     <HeroSection id="hero">
       <ParticleBackground />
       <Content>
-        {/* 个人区域：居中，约40%宽 */}
-        <ProfileArea>
-          <AvatarWrapper>
-            <Avatar src={heroData.avatar} alt={heroData.name} />
-          </AvatarWrapper>
-          <Name>{heroData.name}</Name>
-          <Typewriter text="The world has no shortage of adults" speed={43} />
-        </ProfileArea>
+        <HeroLayout>
+          {/* 左栏：个人区域靠左 */}
+          <ProfileArea>
+            <AvatarWrapper>
+              <Avatar src={heroData.avatar} alt={heroData.name} />
+            </AvatarWrapper>
+            <Name>{heroData.name}</Name>
+            <Typewriter text="The world has no shortage of adults" speed={43} />
+          </ProfileArea>
 
-        {/* 卡片网格：6张 */}
-        <CardsGrid>
-          {cards.map((card, i) => (
-            <Card key={i} accent={card.accent} delay={i}>
-              <CardHeader>
-                <CardIcon bg={card.iconBg}>{card.icon}</CardIcon>
-                <CardInfo>
-                  <CardLabel>{card.label}</CardLabel>
-                  <CardValue color={card.accent}>{card.value}</CardValue>
-                </CardInfo>
-              </CardHeader>
-              {card.progress && (
-                <ProgressBarContainer>
-                  <ProgressBarFill width={card.progress} color={card.accent} />
-                </ProgressBarContainer>
-              )}
-              {card.sub && <CardSub>{card.sub}</CardSub>}
-            </Card>
-          ))}
-        </CardsGrid>
+          {/* 中栏：6张小卡片（2列3行） */}
+          <CardsGrid>
+            {cards.map((card, i) => (
+              <Card key={i} accent={card.accent} delay={i}>
+                <CardHeader>
+                  <CardIcon bg={card.iconBg}>{card.icon}</CardIcon>
+                  <CardInfo>
+                    <CardLabel>{card.label}</CardLabel>
+                    <CardValue color={card.accent}>{card.value}</CardValue>
+                  </CardInfo>
+                </CardHeader>
+                {card.progress && (
+                  <ProgressBarContainer>
+                    <ProgressBarFill width={card.progress} color={card.accent} />
+                  </ProgressBarContainer>
+                )}
+                {card.sub && <CardSub>{card.sub}</CardSub>}
+              </Card>
+            ))}
+          </CardsGrid>
+
+          {/* 右栏：日历 */}
+          <div>
+            <CalendarCard />
+          </div>
+        </HeroLayout>
       </Content>
     </HeroSection>
   );
