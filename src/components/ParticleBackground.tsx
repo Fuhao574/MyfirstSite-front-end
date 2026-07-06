@@ -39,7 +39,7 @@ export default function ParticleBackground() {
     let animationId: number;
     let particles: Particle[] = [];
 
-    // 低饱和度色彩
+  // 低饱和度色彩
     const colors = [
       '147, 197, 253',   // 浅蓝
       '196, 181, 253',   // 浅紫

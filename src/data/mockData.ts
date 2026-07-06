@@ -10,7 +10,7 @@ export const navItems: NavItem[] = [];
 // Hero 区域数据
 export const heroData = {
   name: 'Fuhao574',
-  avatar: '/avatar.jpg',
+  avatar: 'https://q2.qlogo.cn/headimg_dl?dst_uin=963155227&spec=0',
 };
 
 // 技能数据

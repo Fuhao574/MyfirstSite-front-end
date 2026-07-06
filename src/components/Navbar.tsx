@@ -12,6 +12,11 @@ import { theme } from '../styles/theme';
 import { Menu, X, Sun, Moon, Globe } from 'lucide-react';
 
 /* 动画 */
+const scaleIn = keyframes`
+  from { transform: scale(1.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+`;
+
 const shake = keyframes`
   0%, 100% { transform: translateX(0) rotate(0deg); }
   10% { transform: translateX(-3px) rotate(-2deg); }
@@ -68,7 +73,14 @@ const LogoAvatar = styled.img`
   object-fit: cover;
   display: block;
   transition: transform 0.3s ease;
-  animation: ${shake} 0.5s ease-in-out;
+
+  &.initial {
+    animation: ${scaleIn} 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+  }
+
+  &.shaking {
+    animation: ${shake} 0.5s ease-in-out !important;
+  }
 `;
 
 const AvatarArea = styled.div`
@@ -336,8 +348,14 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [statusCardOpen, setStatusCardOpen] = useState(false);
-  const [shakeKey, setShakeKey] = useState(0);
+  const [shaking, setShaking] = useState(false);
+  const [initial, setInitial] = useState(true);
   const workStatus = useWorkStatus();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setInitial(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -350,8 +368,12 @@ export default function Navbar() {
 
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShakeKey((k) => k + 1);
-    setStatusCardOpen(true);
+    setShaking(false);
+    requestAnimationFrame(() => {
+      setShaking(true);
+      setStatusCardOpen(true);
+    });
+    setTimeout(() => setShaking(false), 500);
   };
 
   const handleAvatarLeave = () => {
@@ -361,7 +383,11 @@ export default function Navbar() {
   return (
     <NavContainer isScrolled={isScrolled}>
       <AvatarArea onClick={handleAvatarClick} onMouseLeave={handleAvatarLeave}>
-        <LogoAvatar key={shakeKey} src="/avatar.jpg" alt="avatar" />
+        <LogoAvatar
+          src="https://q2.qlogo.cn/headimg_dl?dst_uin=963155227&spec=0" 
+          alt="avatar"
+          className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
+        />
         <StatusCard show={statusCardOpen}>
           <StatusEmoji>{workStatus.emoji}</StatusEmoji>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
