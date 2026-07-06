@@ -1,6 +1,6 @@
 /**
  * Hero 区域组件
- * 布局：左(头像+名字+签名 靠左) + 中(小卡片) + 右(日历卡片)
+ * 个人区域居中 + 日历组件 + 下方6张卡片网格
  */
 
 import { useState, useEffect } from 'react';
@@ -60,33 +60,28 @@ const Content = styled.div`
 `;
 
 /* ============================================
-   三栏布局
+   个人区域：居中，约40%宽度
    ============================================ */
-const HeroLayout = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: ${theme.spacing.xl};
-  align-items: start;
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    gap: ${theme.spacing.lg};
-  }
-`;
-
-/* 左栏：个人区域靠左 */
 const ProfileArea = styled.div`
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto ${theme.spacing['2xl']};
+  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: ${theme.spacing.lg};
   animation: ${fadeInUp} 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    margin-bottom: ${theme.spacing.xl};
+  }
 `;
 
 const AvatarWrapper = styled.div`
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
 
   &::before {
     content: '';
@@ -116,25 +111,26 @@ const Avatar = styled.img`
 `;
 
 const Name = styled.h1`
-  font-size: 36px;
+  font-size: 42px;
   font-weight: 700;
   color: #1A1A2E;
   letter-spacing: -1px;
   line-height: 1.2;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 28px;
+    font-size: 32px;
   }
 `;
 
 const TypewriterContainer = styled.div`
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 400;
   color: ${theme.colors.textSecondary};
   line-height: 1.6;
-  min-height: 28px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
 `;
 
@@ -155,15 +151,27 @@ const Cursor = styled.span<{ blink: boolean }>`
 `;
 
 /* ============================================
-   中栏：小卡片网格
+   日历区域（临时放置）
+   ============================================ */
+const CalendarArea = styled.div`
+  max-width: 360px;
+  margin: 0 auto ${theme.spacing['2xl']};
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    margin-bottom: ${theme.spacing.xl};
+  }
+`;
+
+/* ============================================
+   卡片网格：6张卡片
    ============================================ */
 const CardsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${theme.spacing.md};
+  grid-template-columns: repeat(3, 1fr);
+  gap: ${theme.spacing.lg};
 
   @media (max-width: 900px) {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   @media (max-width: ${theme.breakpoints.mobile}) {
@@ -179,7 +187,7 @@ const cardEnter = keyframes`
 const Card = styled.div<{ accent: string; delay: number }>`
   background: ${theme.colors.bgSecondary};
   border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.md};
+  padding: ${theme.spacing.lg};
   box-shadow: ${theme.shadowLight};
   border: 1px solid rgba(0, 0, 0, 0.04);
   transition: ${theme.transitions.default};
@@ -191,6 +199,7 @@ const Card = styled.div<{ accent: string; delay: number }>`
     ${({ delay }) => 0.4 + delay * 0.08}s
     cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
+  /* 左侧装饰条 */
   &::after {
     content: '';
     position: absolute;
@@ -213,13 +222,13 @@ const Card = styled.div<{ accent: string; delay: number }>`
 const CardHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: ${theme.spacing.sm};
-  margin-bottom: ${theme.spacing.sm};
+  gap: ${theme.spacing.md};
+  margin-bottom: ${theme.spacing.md};
 `;
 
 const CardIcon = styled.div<{ bg: string }>`
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
@@ -229,8 +238,8 @@ const CardIcon = styled.div<{ bg: string }>`
   flex-shrink: 0;
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     stroke-width: 2.2;
   }
 `;
@@ -239,35 +248,32 @@ const CardInfo = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+  gap: 2px;
 `;
 
 const CardLabel = styled.span`
-  font-size: 11px;
+  font-size: 12px;
   color: ${theme.colors.textTertiary};
   font-weight: 500;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 `;
 
 const CardValue = styled.span<{ color: string }>`
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: ${({ color }) => color};
   line-height: 1.2;
   letter-spacing: -0.3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `;
 
 const ProgressBarContainer = styled.div`
   width: 100%;
-  height: 5px;
+  height: 6px;
   background: ${theme.colors.bgTertiary};
   border-radius: ${theme.borderRadius.full};
   overflow: hidden;
-  margin-top: ${theme.spacing.xs};
+  margin-top: ${theme.spacing.sm};
 `;
 
 const ProgressBarFill = styled.div<{ width: number; color: string }>`
@@ -280,9 +286,9 @@ const ProgressBarFill = styled.div<{ width: number; color: string }>`
 `;
 
 const CardSub = styled.span`
-  font-size: 11px;
+  font-size: 13px;
   color: ${theme.colors.textSecondary};
-  margin-top: 2px;
+  margin-top: ${theme.spacing.xs};
 `;
 
 /* ============================================
@@ -437,7 +443,7 @@ export default function Hero() {
     {
       accent: '#14B8A6',
       icon: <Globe />,
-      label: '浏览器',
+      label: '浏览器 / 平台',
       value: browserInfo,
       iconBg: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
     },
@@ -472,42 +478,40 @@ export default function Hero() {
     <HeroSection id="hero">
       <ParticleBackground />
       <Content>
-        <HeroLayout>
-          {/* 左栏：个人区域靠左 */}
-          <ProfileArea>
-            <AvatarWrapper>
-              <Avatar src={heroData.avatar} alt={heroData.name} />
-            </AvatarWrapper>
-            <Name>{heroData.name}</Name>
-            <Typewriter text="The world has no shortage of adults" speed={43} />
-          </ProfileArea>
+        {/* 个人区域：居中 */}
+        <ProfileArea>
+          <AvatarWrapper>
+            <Avatar src={heroData.avatar} alt={heroData.name} />
+          </AvatarWrapper>
+          <Name>{heroData.name}</Name>
+          <Typewriter text="The world has no shortage of adults" speed={43} />
+        </ProfileArea>
 
-          {/* 中栏：6张小卡片（2列3行） */}
-          <CardsGrid>
-            {cards.map((card, i) => (
-              <Card key={i} accent={card.accent} delay={i}>
-                <CardHeader>
-                  <CardIcon bg={card.iconBg}>{card.icon}</CardIcon>
-                  <CardInfo>
-                    <CardLabel>{card.label}</CardLabel>
-                    <CardValue color={card.accent}>{card.value}</CardValue>
-                  </CardInfo>
-                </CardHeader>
-                {card.progress && (
-                  <ProgressBarContainer>
-                    <ProgressBarFill width={card.progress} color={card.accent} />
-                  </ProgressBarContainer>
-                )}
-                {card.sub && <CardSub>{card.sub}</CardSub>}
-              </Card>
-            ))}
-          </CardsGrid>
+        {/* 日历区域（临时放置，居中） */}
+        <CalendarArea>
+          <CalendarCard />
+        </CalendarArea>
 
-          {/* 右栏：日历 */}
-          <div>
-            <CalendarCard />
-          </div>
-        </HeroLayout>
+        {/* 卡片网格：6张 */}
+        <CardsGrid>
+          {cards.map((card, i) => (
+            <Card key={i} accent={card.accent} delay={i}>
+              <CardHeader>
+                <CardIcon bg={card.iconBg}>{card.icon}</CardIcon>
+                <CardInfo>
+                  <CardLabel>{card.label}</CardLabel>
+                  <CardValue color={card.accent}>{card.value}</CardValue>
+                </CardInfo>
+              </CardHeader>
+              {card.progress && (
+                <ProgressBarContainer>
+                  <ProgressBarFill width={card.progress} color={card.accent} />
+                </ProgressBarContainer>
+              )}
+              {card.sub && <CardSub>{card.sub}</CardSub>}
+            </Card>
+          ))}
+        </CardsGrid>
       </Content>
     </HeroSection>
   );
