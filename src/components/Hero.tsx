@@ -76,22 +76,6 @@ const ProfileArea = styled.div`
   }
 `;
 
-const AvatarWrapper = styled.div`
-  position: relative;
-  width: 150px;
-  height: 150px;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: ${theme.borderRadius.full};
-    background: ${theme.colors.gradientBlue};
-    animation: ${pulseGlow} 3s ease-in-out infinite;
-    z-index: -1;
-  }
-`;
-
 const Avatar = styled.img`
   width: 100%;
   height: 100%;
@@ -105,6 +89,22 @@ const Avatar = styled.img`
 
   &:hover {
     transform: scale(1.06) rotate(-2deg);
+  }
+`;
+
+const AvatarWrapper = styled.div`
+  position: relative;
+  width: 150px;
+  height: 150px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: ${theme.borderRadius.full};
+    background: ${theme.colors.gradientBlue};
+    animation: ${pulseGlow} 3s ease-in-out infinite;
+    z-index: -1;
   }
 `;
 
@@ -375,6 +375,8 @@ function useBrowserInfo() {
 
   return info;
 }
+
+
 
 export default function Hero() {
   const location = useVisitorLocation();

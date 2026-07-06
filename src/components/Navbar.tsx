@@ -1,16 +1,32 @@
 /**
  * 顶部导航栏组件
- * 左侧 Logo / 名字缩写，右侧导航链接 + iCost 风格按钮组
- * 支持平滑滚动锚点 + 毛玻璃效果
+ * 左侧小头像（悬停抖动+状态卡片），右侧 iCost 风格按钮组
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { useScrollPosition } from '../hooks/useScrollPosition';
 import { navItems } from '../data/mockData';
 import { theme } from '../styles/theme';
 import { Menu, X, Sun, Moon, Globe } from 'lucide-react';
 
+/* 动画 */
+const shake = keyframes`
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(-3px) rotate(-2deg); }
+  20% { transform: translateX(3px) rotate(2deg); }
+  30% { transform: translateX(-3px) rotate(-1deg); }
+  40% { transform: translateX(3px) rotate(1deg); }
+  50% { transform: translateX(-2px) rotate(0deg); }
+  60% { transform: translateX(2px) rotate(0deg); }
+  70% { transform: translateX(-1px) rotate(0deg); }
+  80% { transform: translateX(1px) rotate(0deg); }
+`;
+
+/* ============================================
+   导航栏
+   ============================================ */
 const NavContainer = styled.nav<{ isScrolled: boolean }>`
   position: fixed;
   top: 0;
@@ -26,7 +42,6 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   margin: 0 auto;
   width: 100%;
 
-  /* 毛玻璃效果 */
   background: ${({ isScrolled }) =>
     isScrolled ? 'rgba(245, 247, 250, 0.8)' : 'transparent'};
   backdrop-filter: ${({ isScrolled }) => (isScrolled ? 'blur(20px) saturate(180%)' : 'none')};
@@ -43,6 +58,81 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   }
 `;
 
+/* ============================================
+   小头像区域
+   ============================================ */
+const LogoAvatar = styled.img`
+  width: 38px;
+  height: 38px;
+  border-radius: ${theme.borderRadius.md};
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+  animation: ${shake} 0.5s ease-in-out;
+`;
+
+const AvatarArea = styled.div`
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+`;
+
+/* 状态卡片 - 点击弹出，鼠标移开关闭 */
+const StatusCard = styled.div<{ show: boolean }>`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 10px;
+  background: ${theme.colors.bgSecondary};
+  border-radius: ${theme.borderRadius.lg};
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  white-space: nowrap;
+  z-index: 10;
+  opacity: ${({ show }) => (show ? 1 : 0)};
+  pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
+  transform: ${({ show }) => (show ? 'translateY(0)' : 'translateY(8px)')};
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 16px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid ${theme.colors.bgSecondary};
+  }
+`;
+
+const StatusEmoji = styled.span`
+  font-size: 24px;
+  line-height: 1;
+`;
+
+const StatusText = styled.span<{ color: string }>`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ color }) => color};
+`;
+
+const StatusLabel = styled.span`
+  font-size: 11px;
+  color: ${theme.colors.textTertiary};
+`;
+
 const RightSection = styled.div`
   display: flex;
   align-items: center;
@@ -52,13 +142,6 @@ const RightSection = styled.div`
   @media (max-width: ${theme.breakpoints.tablet}) {
     gap: ${theme.spacing.sm};
   }
-`;
-
-const LogoAvatar = styled.img`
-  width: 36px;
-  height: 36px;
-  border-radius: ${theme.borderRadius.md};
-  object-fit: cover;
 `;
 
 const NavLinks = styled.ul<{ isOpen: boolean }>`
@@ -108,14 +191,13 @@ const NavLink = styled.a`
 `;
 
 /* ============================================
-   iCost 风格按钮组 - 带背景容器
+   iCost 风格按钮组
    ============================================ */
 const ButtonPanel = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing.sm};
 
-  /* iOS 控制中心风格的背景容器 */
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(12px) saturate(160%);
   -webkit-backdrop-filter: blur(12px) saturate(160%);
@@ -144,7 +226,6 @@ const IconButton = styled.button<{ variant?: 'blue' | 'yellow' | 'teal' }>`
   position: relative;
   overflow: hidden;
 
-  /* 纯色背景 - iCost 风格 */
   background: ${({ variant }) => {
     switch (variant) {
       case 'yellow':
@@ -157,7 +238,6 @@ const IconButton = styled.button<{ variant?: 'blue' | 'yellow' | 'teal' }>`
     }
   }};
 
-  /* iCost 风格柔和阴影 */
   box-shadow: ${({ variant }) => {
     switch (variant) {
       case 'yellow':
@@ -189,7 +269,6 @@ const IconButton = styled.button<{ variant?: 'blue' | 'yellow' | 'teal' }>`
     transform: scale(0.94);
   }
 
-  /* 点击时的波纹效果 */
   &::after {
     content: '';
     position: absolute;
@@ -228,10 +307,37 @@ const MenuButton = styled.button`
   }
 `;
 
+/* 工作状态 */
+function useWorkStatus() {
+  const [status, setStatus] = useState({ text: '加载中...', emoji: '⏳', color: '#9CA3AF' });
+
+  useEffect(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay();
+
+    const isWeekday = day >= 1 && day <= 5;
+    const isWorkHour = hour >= 9 && hour < 18;
+
+    if (isWeekday && isWorkHour) {
+      setStatus({ text: '摸鱼中', emoji: '🐟', color: '#3B82F6' });
+    } else if (isWeekday && !isWorkHour) {
+      setStatus({ text: 'Happy中', emoji: '🎮', color: '#8B5CF6' });
+    } else {
+      setStatus({ text: '享受周末', emoji: '🎉', color: '#F97316' });
+    }
+  }, []);
+
+  return status;
+}
+
 export default function Navbar() {
   const { isScrolled } = useScrollPosition();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [statusCardOpen, setStatusCardOpen] = useState(false);
+  const [shakeKey, setShakeKey] = useState(0);
+  const workStatus = useWorkStatus();
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -242,9 +348,29 @@ export default function Navbar() {
     }
   };
 
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShakeKey((k) => k + 1);
+    setStatusCardOpen(true);
+  };
+
+  const handleAvatarLeave = () => {
+    setStatusCardOpen(false);
+  };
+
   return (
     <NavContainer isScrolled={isScrolled}>
-      <LogoAvatar src="/avatar.jpg" alt="avatar" />
+      <AvatarArea onClick={handleAvatarClick} onMouseLeave={handleAvatarLeave}>
+        <LogoAvatar key={shakeKey} src="/avatar.jpg" alt="avatar" />
+        <StatusCard show={statusCardOpen}>
+          <StatusEmoji>{workStatus.emoji}</StatusEmoji>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <StatusText color={workStatus.color}>{workStatus.text}</StatusText>
+            <StatusLabel>当前状态</StatusLabel>
+          </div>
+        </StatusCard>
+      </AvatarArea>
+
       <RightSection>
         <NavLinks isOpen={isMenuOpen}>
           {navItems.map((item) => (
@@ -256,9 +382,7 @@ export default function Navbar() {
           ))}
         </NavLinks>
 
-        {/* iCost 风格按钮组 - 带毛玻璃背景容器 */}
         <ButtonPanel>
-          {/* 主题切换 - 蓝色 */}
           <IconButton
             variant="blue"
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -267,7 +391,6 @@ export default function Navbar() {
             {isDarkMode ? <Sun size={17} /> : <Moon size={17} />}
           </IconButton>
 
-          {/* 语言切换 - 青色 */}
           <IconButton variant="teal" aria-label="切换语言">
             <Globe size={17} />
           </IconButton>
