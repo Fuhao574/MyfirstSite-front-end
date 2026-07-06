@@ -4,6 +4,7 @@
  * 法定节假日/周末：绿色小点
  * 特殊日期：红色小点
  * 调休上班日：灰色标记
+ * 周一开始，需要6行时从1号星期开始
  */
 
 import { useState, useMemo } from 'react';
@@ -46,7 +47,7 @@ const SPECIAL_DATES: Record<string, string> = {
   '10-31': '万圣节', '12-25': '圣诞节',
 };
 
-const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+const ALL_WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 
 /* ============================================
    iCost 风格样式
@@ -273,10 +274,27 @@ export default function CalendarCard() {
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
 
-  const calendarDays = useMemo(() => {
-    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const { days: calendarDays, weekdayLabels } = useMemo(() => {
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
     const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+    const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay(); // 0=周日,1=周一...
+
+    // 默认以周一为第一天：需要填充的前几天
+    // 周一=1 → 0天, 周二=2 → 1天, ..., 周日=0 → 6天
+    let padBefore = (firstDayOfWeek + 6) % 7;
+    let weekStart = 1; // 周一
+
+    // 如果填充+当月超过35天，则从1号所在星期开始
+    if (padBefore + daysInMonth > 35) {
+      padBefore = 0;
+      weekStart = firstDayOfWeek;
+    }
+
+    // 生成表头（从 weekStart 开始循环7天）
+    const weekdayLabels: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      weekdayLabels.push(ALL_WEEKDAYS[(weekStart + i) % 7]);
+    }
 
     const days: Array<{
       day: number;
@@ -288,13 +306,15 @@ export default function CalendarCard() {
     }> = [];
 
     // 上月填充
-    for (let i = firstDay - 1; i >= 0; i--) {
+    for (let i = padBefore - 1; i >= 0; i--) {
       const d = prevDays - i;
       const m = viewMonth - 1;
       const y = m < 0 ? viewYear - 1 : viewYear;
       const wd = new Date(y, m < 0 ? 11 : m, d).getDay();
       days.push({
-        day: d, month: m < 0 ? 11 : m, year: y,
+        day: d,
+        month: m < 0 ? 11 : m,
+        year: y,
         isCurrentMonth: false,
         dateKey: `${y}-${m < 0 ? 11 : m}-${d}`,
         weekday: wd,
@@ -305,28 +325,32 @@ export default function CalendarCard() {
     for (let d = 1; d <= daysInMonth; d++) {
       const wd = new Date(viewYear, viewMonth, d).getDay();
       days.push({
-        day: d, month: viewMonth, year: viewYear,
+        day: d,
+        month: viewMonth,
+        year: viewYear,
         isCurrentMonth: true,
         dateKey: `${viewYear}-${viewMonth}-${d}`,
         weekday: wd,
       });
     }
 
-    // 下月填充 — 只补到35天（5行）
+    // 下月填充 — 补到35天（5行）
     const remaining = 35 - days.length;
     for (let d = 1; d <= remaining; d++) {
       const m = viewMonth + 1;
       const y = m > 11 ? viewYear + 1 : viewYear;
       const wd = new Date(y, m > 11 ? 0 : m, d).getDay();
       days.push({
-        day: d, month: m > 11 ? 0 : m, year: y,
+        day: d,
+        month: m > 11 ? 0 : m,
+        year: y,
         isCurrentMonth: false,
         dateKey: `${y}-${m > 11 ? 0 : m}-${d}`,
         weekday: wd,
       });
     }
 
-    return days;
+    return { days, weekStart, weekdayLabels };
   }, [viewYear, viewMonth]);
 
   const prevMonth = () => {
@@ -407,8 +431,8 @@ export default function CalendarCard() {
       </CalendarHeader>
 
       <WeekdayRow>
-        {WEEKDAYS.map((w) => (
-          <WeekdayCell key={w}>{w}</WeekdayCell>
+        {weekdayLabels.map((w, i) => (
+          <WeekdayCell key={`${w}-${i}`}>{w}</WeekdayCell>
         ))}
       </WeekdayRow>
 
