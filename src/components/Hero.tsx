@@ -369,8 +369,41 @@ function useBrowserInfo() {
     else if (ua.includes('Firefox')) browser = 'Firefox';
     else if (ua.includes('Edge')) browser = 'Edge';
 
-    const platform = navigator.platform || '未知平台';
-    setInfo(`${browser} · ${platform}`);
+    // 检测平台架构
+    const detectPlatform = async () => {
+      // 方法1: userAgentData (现代浏览器)
+      if ((navigator as any).userAgentData?.getHighEntropyValues) {
+        try {
+          const data = await (navigator as any).userAgentData.getHighEntropyValues(['architecture']);
+          if (data.architecture === 'arm') return 'Apple Silicon';
+          if (data.architecture === 'x86') return 'Intel';
+        } catch (e) {}
+      }
+
+      // 方法2: WebGL GPU 检测 (Firefox 等)
+      if (navigator.platform === 'MacIntel') {
+        try {
+          const canvas = document.createElement('canvas');
+          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (gl) {
+            const debugInfo = (gl as any).getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+              const renderer = (gl as any).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+              if (renderer && renderer.includes('Apple')) {
+                return 'Apple Silicon';
+              }
+            }
+          }
+        } catch (e) {}
+        return 'Intel';
+      }
+
+      return navigator.platform || '未知平台';
+    };
+
+    detectPlatform().then(platform => {
+      setInfo(`${browser} · ${platform}`);
+    });
   }, []);
 
   return info;

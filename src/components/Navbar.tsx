@@ -9,7 +9,10 @@ import styled from '@emotion/styled';
 import { useScrollPosition } from '../hooks/useScrollPosition';
 import { navItems } from '../data/mockData';
 import { theme } from '../styles/theme';
-import { Menu, X, Sun, Moon, Globe } from 'lucide-react';
+import {
+  Menu, X, Sun, Moon, Globe,
+  Home, BookOpen, Archive, Users, FolderOpen, MessageSquare, User,
+} from 'lucide-react';
 
 /* 动画 */
 const scaleIn = keyframes`
@@ -39,9 +42,10 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   right: 0;
   z-index: 1000;
   height: 72px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
+  gap: ${theme.spacing.lg};
   padding: 0 ${theme.spacing.xl};
   max-width: 1200px;
   margin: 0 auto;
@@ -60,6 +64,8 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   @media (max-width: ${theme.breakpoints.tablet}) {
     padding: 0 ${theme.spacing.md};
     height: 64px;
+    display: flex;
+    justify-content: space-between;
   }
 `;
 
@@ -159,7 +165,8 @@ const RightSection = styled.div`
 const NavLinks = styled.ul<{ isOpen: boolean }>`
   display: flex;
   align-items: center;
-  gap: ${theme.spacing.lg};
+  justify-content: center;
+  gap: ${theme.spacing.md};
   list-style: none;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
@@ -184,17 +191,32 @@ const NavLinks = styled.ul<{ isOpen: boolean }>`
 `;
 
 const NavLink = styled.a`
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: ${theme.colors.textSecondary};
   padding: ${theme.spacing.sm} ${theme.spacing.md};
   border-radius: ${theme.borderRadius.sm};
   transition: ${theme.transitions.fast};
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+    transition: ${theme.transitions.fast};
+  }
 
   &:hover {
     color: ${theme.colors.accentBlue};
     background: rgba(99, 102, 241, 0.06);
+
+    svg {
+      color: ${theme.colors.accentBlue};
+      transform: scale(1.15);
+    }
   }
 
   @media (max-width: ${theme.breakpoints.tablet}) {
@@ -397,17 +419,24 @@ export default function Navbar() {
         </StatusCard>
       </AvatarArea>
 
-      <RightSection>
-        <NavLinks isOpen={isMenuOpen}>
-          {navItems.map((item) => (
-            <li key={item.id}>
-              <NavLink href={item.href} onClick={(e) => handleNavClick(e, item.href)}>
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
-        </NavLinks>
+      <NavLinks isOpen={isMenuOpen}>
+        {navItems.map((item) => (
+          <li key={item.id}>
+            <NavLink href={item.href} onClick={(e) => handleNavClick(e, item.href)}>
+              {item.icon === 'Home' && <Home />}
+              {item.icon === 'BookOpen' && <BookOpen />}
+              {item.icon === 'Archive' && <Archive />}
+              {item.icon === 'Users' && <Users />}
+              {item.icon === 'FolderOpen' && <FolderOpen />}
+              {item.icon === 'MessageSquare' && <MessageSquare />}
+              {item.icon === 'User' && <User />}
+              {item.label}
+            </NavLink>
+          </li>
+        ))}
+      </NavLinks>
 
+      <RightSection>
         <ButtonPanel>
           <IconButton
             variant="blue"
