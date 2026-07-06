@@ -5,14 +5,12 @@
 import type { Skill, Project, SocialLink, NavItem } from '../types';
 
 // 导航项
-export const navItems: NavItem[] = [
-  { id: 'skills', label: '技能', href: '#skills' },
-];
+export const navItems: NavItem[] = [];
 
 // Hero 区域数据
 export const heroData = {
   name: 'Fuhao574',
-  avatar: 'avatar.jpg',
+  avatar: '/avatar.jpg',
 };
 
 // 技能数据

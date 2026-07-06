@@ -1,71 +1,85 @@
 /**
  * Hero 区域组件
- * 左侧：个人信息卡片（头像+名字+签名）
- * 右侧：访客信息小玩具（IP、时间等）
- * 使用 iCost 风格
+ * 个人区域居中（约40%宽）+ 下方6张卡片网格
  */
 
 import { useState, useEffect } from 'react';
+import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { heroData } from '../data/mockData';
 import ParticleBackground from './ParticleBackground';
-import { MapPin, Clock, Globe, Wifi } from 'lucide-react';
+import {
+  MapPin, Clock, Globe, Wifi, Music, Wallet,
+} from 'lucide-react';
 
+/* 动画 */
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const pulseGlow = keyframes`
+  0%, 100% { opacity: 0.2; filter: blur(14px); }
+  50%      { opacity: 0.45; filter: blur(20px); }
+`;
+
+const shimmer = keyframes`
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`;
+
+/* Hero 容器 — 取消固定高度 */
 const HeroSection = styled.section`
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 120px ${theme.spacing.xl} ${theme.spacing['4xl']};
   overflow: hidden;
 
   background: linear-gradient(
-    180deg,
+    135deg,
     #eef2ff 0%,
-    #f5f7fa 40%,
-    #f5f3ff 70%,
-    #f5f7fa 100%
+    #f5f7fa 30%,
+    #f5f3ff 60%,
+    #eef2ff 100%
   );
-`;
-
-const HeroGrid = styled.div`
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${theme.spacing['2xl']};
-  align-items: center;
-  max-width: 1000px;
-  width: 100%;
-  padding: ${theme.spacing.xl};
+  background-size: 200% 200%;
+  animation: ${shimmer} 15s ease-in-out infinite alternate;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr;
-    gap: ${theme.spacing.xl};
-    text-align: center;
+    padding: 100px ${theme.spacing.md} ${theme.spacing['2xl']};
   }
 `;
 
+const Content = styled.div`
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+`;
+
 /* ============================================
-   左侧：个人信息卡片
+   个人区域：居中，约40%宽度
    ============================================ */
-const ProfileCard = styled.div`
-  background: transparent;
+const ProfileArea = styled.div`
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto ${theme.spacing['2xl']};
+  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: ${theme.spacing.lg};
+  animation: ${fadeInUp} 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    align-items: center;
+    margin-bottom: ${theme.spacing.xl};
   }
 `;
 
 const AvatarWrapper = styled.div`
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
 
   &::before {
     content: '';
@@ -73,8 +87,7 @@ const AvatarWrapper = styled.div`
     inset: -5px;
     border-radius: ${theme.borderRadius.full};
     background: ${theme.colors.gradientBlue};
-    opacity: 0.2;
-    filter: blur(14px);
+    animation: ${pulseGlow} 3s ease-in-out infinite;
     z-index: -1;
   }
 `;
@@ -88,21 +101,25 @@ const Avatar = styled.img`
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.08),
     0 0 0 1px rgba(0, 0, 0, 0.04);
+  transition: ${theme.transitions.default};
+
+  &:hover {
+    transform: scale(1.06) rotate(-2deg);
+  }
 `;
 
 const Name = styled.h1`
-  font-size: 36px;
+  font-size: 42px;
   font-weight: 700;
-  color: ${theme.colors.textPrimary};
+  color: #1A1A2E;
   letter-spacing: -1px;
   line-height: 1.2;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 28px;
+    font-size: 32px;
   }
 `;
 
-/* 打字机效果 */
 const TypewriterContainer = styled.div`
   font-size: 18px;
   font-weight: 400;
@@ -111,12 +128,8 @@ const TypewriterContainer = styled.div`
   min-height: 30px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 16px;
-    justify-content: center;
-  }
 `;
 
 const TypedText = styled.span`
@@ -136,29 +149,41 @@ const Cursor = styled.span<{ blink: boolean }>`
 `;
 
 /* ============================================
-   右侧：访客信息小玩具
+   卡片网格：6张卡片
    ============================================ */
-const ToysPanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.md};
+const CardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: ${theme.spacing.lg};
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
-/* iCost 风格小卡片 */
-const ToyCard = styled.div<{ accent: string }>`
+const cardEnter = keyframes`
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+`;
+
+const Card = styled.div<{ accent: string; delay: number }>`
   background: ${theme.colors.bgSecondary};
   border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.md} ${theme.spacing.lg};
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 4px 12px rgba(0, 0, 0, 0.04);
+  padding: ${theme.spacing.lg};
+  box-shadow: ${theme.shadowLight};
   border: 1px solid rgba(0, 0, 0, 0.04);
   transition: ${theme.transitions.default};
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.md};
+  cursor: default;
   position: relative;
   overflow: hidden;
+
+  animation: ${cardEnter}
+    ${({ delay }) => 0.4 + delay * 0.08}s
+    cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
   /* 左侧装饰条 */
   &::after {
@@ -173,16 +198,23 @@ const ToyCard = styled.div<{ accent: string }>`
   }
 
   &:hover {
-    transform: translateX(4px);
+    transform: translateY(-4px);
     box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.08),
-      0 8px 24px rgba(0, 0, 0, 0.06);
+      0 8px 24px rgba(0, 0, 0, 0.08),
+      0 12px 40px rgba(0, 0, 0, 0.06);
   }
 `;
 
-const ToyIcon = styled.div<{ bg: string }>`
-  width: 40px;
-  height: 40px;
+const CardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.md};
+  margin-bottom: ${theme.spacing.md};
+`;
+
+const CardIcon = styled.div<{ bg: string }>`
+  width: 44px;
+  height: 44px;
   border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
@@ -192,45 +224,70 @@ const ToyIcon = styled.div<{ bg: string }>`
   flex-shrink: 0;
 
   svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 2.5;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2;
   }
 `;
 
-const ToyInfo = styled.div`
+const CardInfo = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
 `;
 
-const ToyLabel = styled.span`
+const CardLabel = styled.span`
   font-size: 12px;
   color: ${theme.colors.textTertiary};
   font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 `;
 
-const ToyValue = styled.span<{ color: string }>`
-  font-size: 18px;
+const CardValue = styled.span<{ color: string }>`
+  font-size: 20px;
   font-weight: 700;
   color: ${({ color }) => color};
   line-height: 1.2;
   letter-spacing: -0.3px;
 `;
 
-/* 打字机 Hook */
+const ProgressBarContainer = styled.div`
+  width: 100%;
+  height: 6px;
+  background: ${theme.colors.bgTertiary};
+  border-radius: ${theme.borderRadius.full};
+  overflow: hidden;
+  margin-top: ${theme.spacing.sm};
+`;
+
+const ProgressBarFill = styled.div<{ width: number; color: string }>`
+  height: 100%;
+  width: ${({ width }) => width}%;
+  background: ${({ color }) => color};
+  border-radius: ${theme.borderRadius.full};
+  transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  opacity: 0.8;
+`;
+
+const CardSub = styled.span`
+  font-size: 13px;
+  color: ${theme.colors.textSecondary};
+  margin-top: ${theme.spacing.xs};
+`;
+
+/* ============================================
+   打字机 Hook
+   ============================================ */
 function useTypewriter(text: string, speed: number = 100, delay: number = 800) {
   const [displayed, setDisplayed] = useState('');
-  const [cursorBlink, setCursorBlink] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
   useEffect(() => {
     let index = 0;
     setDisplayed('');
     setIsDone(false);
-    setCursorBlink(false);
 
     const startTimeout = setTimeout(() => {
       const interval = setInterval(() => {
@@ -240,10 +297,6 @@ function useTypewriter(text: string, speed: number = 100, delay: number = 800) {
         if (index >= text.length) {
           clearInterval(interval);
           setIsDone(true);
-          const blinkInterval = setInterval(() => {
-            setCursorBlink((prev) => !prev);
-          }, 530);
-          return () => clearInterval(blinkInterval);
         }
       }, speed);
 
@@ -253,21 +306,22 @@ function useTypewriter(text: string, speed: number = 100, delay: number = 800) {
     return () => clearTimeout(startTimeout);
   }, [text, speed, delay]);
 
-  return { displayed, cursorBlink, isDone };
+  return { displayed, isDone };
 }
 
 function Typewriter({ text, speed = 90 }: { text: string; speed?: number }) {
-  const { displayed, cursorBlink, isDone } = useTypewriter(text, speed);
+  const { displayed, isDone } = useTypewriter(text, speed);
 
   return (
     <TypewriterContainer>
-      <TypedText>"{displayed}"</TypedText>
-      <Cursor blink={isDone ? cursorBlink : true} />
+      <TypedText>"{displayed}<Cursor blink={isDone ? false : true} />"</TypedText>
     </TypewriterContainer>
   );
 }
 
-/* 获取访客地区 */
+/* ============================================
+   数据 Hooks
+   ============================================ */
 function useVisitorLocation() {
   const [location, setLocation] = useState('获取中...');
 
@@ -289,7 +343,6 @@ function useVisitorLocation() {
   return location;
 }
 
-/* 实时时间 Hook */
 function useCurrentTime() {
   const [time, setTime] = useState(new Date());
 
@@ -305,7 +358,6 @@ function useCurrentTime() {
   return { timeStr: `${hours}:${minutes}:${seconds}`, dateStr: time.toLocaleDateString('zh-CN') };
 }
 
-/* 浏览器信息 */
 function useBrowserInfo() {
   const [info, setInfo] = useState('检测中...');
 
@@ -324,104 +376,94 @@ function useBrowserInfo() {
   return info;
 }
 
-const ScrollIndicator = styled.div`
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  color: ${theme.colors.textTertiary};
-  animation: bounce 2s infinite ease-out;
-
-  @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-    40% { transform: translateX(-50%) translateY(-8px); }
-    60% { transform: translateX(-50%) translateY(-4px); }
-  }
-
-  span {
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  &::after {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-  }
-`;
-
 export default function Hero() {
   const location = useVisitorLocation();
   const { timeStr, dateStr } = useCurrentTime();
   const browserInfo = useBrowserInfo();
 
+  const cards = [
+    {
+      accent: '#3B82F6',
+      icon: <Wifi />,
+      label: '你的位置',
+      value: location,
+      iconBg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+    },
+    {
+      accent: '#F97316',
+      icon: <Clock />,
+      label: '当前时间',
+      value: timeStr,
+      iconBg: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+    },
+    {
+      accent: '#14B8A6',
+      icon: <Globe />,
+      label: '浏览器 / 平台',
+      value: browserInfo,
+      iconBg: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
+    },
+    {
+      accent: '#8B5CF6',
+      icon: <MapPin />,
+      label: '访问日期',
+      value: dateStr,
+      iconBg: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+    },
+    {
+      accent: '#FF9500',
+      icon: <Music />,
+      label: '听歌时长',
+      value: '127h',
+      iconBg: 'linear-gradient(135deg, #FF9500 0%, #F97316 100%)',
+      progress: 42,
+      sub: '本月累计 · 最爱周杰伦',
+    },
+    {
+      accent: '#3B82F6',
+      icon: <Wallet />,
+      label: '当月预算',
+      value: '¥3,280',
+      iconBg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+      progress: 66,
+      sub: '总额 ¥5,000 · 剩余 ¥1,720',
+    },
+  ];
+
   return (
     <HeroSection id="hero">
       <ParticleBackground />
-      <HeroGrid>
-        {/* 左侧：个人信息卡片 */}
-        <ProfileCard>
+      <Content>
+        {/* 个人区域：居中，约40%宽 */}
+        <ProfileArea>
           <AvatarWrapper>
             <Avatar src={heroData.avatar} alt={heroData.name} />
           </AvatarWrapper>
           <Name>{heroData.name}</Name>
-          <Typewriter text="The world has no shortage of adults" speed={85} />
-        </ProfileCard>
+          <Typewriter text="The world has no shortage of adults" speed={43} />
+        </ProfileArea>
 
-        {/* 右侧：访客信息小玩具 */}
-        <ToysPanel>
-          <ToyCard accent="#3B82F6">
-            <ToyIcon bg="linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)">
-              <Wifi />
-            </ToyIcon>
-            <ToyInfo>
-              <ToyLabel>你的位置</ToyLabel>
-              <ToyValue color="#3B82F6">{location}</ToyValue>
-            </ToyInfo>
-          </ToyCard>
-
-          <ToyCard accent="#F97316">
-            <ToyIcon bg="linear-gradient(135deg, #F97316 0%, #EA580C 100%)">
-              <Clock />
-            </ToyIcon>
-            <ToyInfo>
-              <ToyLabel>当前时间</ToyLabel>
-              <ToyValue color="#F97316">{timeStr}</ToyValue>
-            </ToyInfo>
-          </ToyCard>
-
-          <ToyCard accent="#14B8A6">
-            <ToyIcon bg="linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)">
-              <Globe />
-            </ToyIcon>
-            <ToyInfo>
-              <ToyLabel>浏览器 / 平台</ToyLabel>
-              <ToyValue color="#14B8A6">{browserInfo}</ToyValue>
-            </ToyInfo>
-          </ToyCard>
-
-          <ToyCard accent="#8B5CF6">
-            <ToyIcon bg="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)">
-              <MapPin />
-            </ToyIcon>
-            <ToyInfo>
-              <ToyLabel>访问日期</ToyLabel>
-              <ToyValue color="#8B5CF6">{dateStr}</ToyValue>
-            </ToyInfo>
-          </ToyCard>
-        </ToysPanel>
-      </HeroGrid>
-      <ScrollIndicator>
-        <span>Scroll</span>
-      </ScrollIndicator>
+        {/* 卡片网格：6张 */}
+        <CardsGrid>
+          {cards.map((card, i) => (
+            <Card key={i} accent={card.accent} delay={i}>
+              <CardHeader>
+                <CardIcon bg={card.iconBg}>{card.icon}</CardIcon>
+                <CardInfo>
+                  <CardLabel>{card.label}</CardLabel>
+                  <CardValue color={card.accent}>{card.value}</CardValue>
+                </CardInfo>
+              </CardHeader>
+              {card.progress && (
+                <ProgressBarContainer>
+                  <ProgressBarFill width={card.progress} color={card.accent} />
+                </ProgressBarContainer>
+              )}
+              {card.sub && <CardSub>{card.sub}</CardSub>}
+            </Card>
+          ))}
+        </CardsGrid>
+      </Content>
     </HeroSection>
   );
 }

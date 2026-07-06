@@ -43,34 +43,22 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   }
 `;
 
-const Logo = styled.a`
-  font-size: 20px;
-  font-weight: 700;
-  color: ${theme.colors.textPrimary};
-  letter-spacing: -0.5px;
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-
-  &::before {
-    content: '';
-    display: inline-block;
-    width: 36px;
-    height: 36px;
-    border-radius: ${theme.borderRadius.md};
-    background: ${theme.colors.gradientBlue};
-    opacity: 0.85;
-  }
-`;
-
 const RightSection = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing.md};
+  margin-left: auto;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     gap: ${theme.spacing.sm};
   }
+`;
+
+const LogoAvatar = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: ${theme.borderRadius.md};
+  object-fit: cover;
 `;
 
 const NavLinks = styled.ul<{ isOpen: boolean }>`
@@ -256,10 +244,7 @@ export default function Navbar() {
 
   return (
     <NavContainer isScrolled={isScrolled}>
-      <Logo href="#" onClick={(e) => handleNavClick(e, '#')}>
-        FH
-      </Logo>
-
+      <LogoAvatar src="/avatar.jpg" alt="avatar" />
       <RightSection>
         <NavLinks isOpen={isMenuOpen}>
           {navItems.map((item) => (
