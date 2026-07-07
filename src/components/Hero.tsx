@@ -4,22 +4,18 @@
  */
 
 import { useState, useEffect } from 'react';
-import { keyframes } from '@emotion/react';
+import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { heroData } from '../data/mockData';
 import ParticleBackground from './ParticleBackground';
 import CalendarCard from './CalendarCard';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import {
   Globe, Wifi, Music, Wallet,
 } from 'lucide-react';
 
 /* 动画 */
-const fadeInUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-`;
-
 const pulseGlow = keyframes`
   0%, 100% { opacity: 0.2; filter: blur(14px); }
   50%      { opacity: 0.45; filter: blur(20px); }
@@ -29,6 +25,32 @@ const shimmer = keyframes`
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 `;
+
+/* ============================================
+   滚动浮现容器
+   ============================================ */
+const RevealSection = styled.div<{ visible: boolean }>`
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0),
+              transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+
+  ${({ visible }) =>
+    visible &&
+    css`
+      opacity: 1;
+      transform: translateY(0);
+    `}
+`;
+
+function ScrollReveal({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { ref, isVisible } = useScrollReveal<HTMLDivElement>({ threshold: 0.1 });
+  return (
+    <RevealSection ref={ref} visible={isVisible} className={className}>
+      {children}
+    </RevealSection>
+  );
+}
 
 /* Hero 容器 */
 const HeroSection = styled.section`
@@ -71,7 +93,6 @@ const ProfileArea = styled.div`
   flex-direction: column;
   align-items: center;
   gap: ${theme.spacing.lg};
-  animation: ${fadeInUp} 0.8s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     margin-bottom: ${theme.spacing.xl};
@@ -179,12 +200,7 @@ const CardsGrid = styled.div`
   }
 `;
 
-const cardEnter = keyframes`
-  from { opacity: 0; transform: translateY(20px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-`;
-
-const Card = styled.div<{ delay: number }>`
+const Card = styled.div`
   background-color: #ffffff;
   border-radius: 16px;
   padding: ${theme.spacing.md};
@@ -194,10 +210,6 @@ const Card = styled.div<{ delay: number }>`
   transition: ${theme.transitions.default};
   cursor: default;
   overflow: hidden;
-
-  animation: ${cardEnter}
-    ${({ delay }) => 0.4 + delay * 0.08}s
-    cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
   &:hover {
     transform: translateY(-4px);
@@ -344,21 +356,6 @@ function useVisitorLocation() {
   return location;
 }
 
-function useCurrentTime() {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const hours = String(time.getHours()).padStart(2, '0');
-  const minutes = String(time.getMinutes()).padStart(2, '0');
-  const seconds = String(time.getSeconds()).padStart(2, '0');
-
-  return { timeStr: `${hours}:${minutes}:${seconds}`, dateStr: time.toLocaleDateString('zh-CN') };
-}
-
 function useBrowserInfo() {
   const [info, setInfo] = useState('检测中...');
 
@@ -409,7 +406,6 @@ function useBrowserInfo() {
 
 export default function Hero() {
   const location = useVisitorLocation();
-  useCurrentTime();
   const browserInfo = useBrowserInfo();
 
   const cards = [
@@ -451,58 +447,62 @@ export default function Hero() {
     <HeroSection id="hero">
       <ParticleBackground />
       <Content>
-        {/* 个人区域：居中 */}
-        <ProfileArea>
-          <AvatarWrapper>
-            <Avatar src={heroData.avatar} alt={heroData.name} />
-          </AvatarWrapper>
-          <Name>{heroData.name}</Name>
-          <Typewriter text="The world has no shortage of adults" speed={43} />
-        </ProfileArea>
+        <ScrollReveal>
+          <ProfileArea>
+            <AvatarWrapper>
+              <Avatar src={heroData.avatar} alt={heroData.name} />
+            </AvatarWrapper>
+            <Name>{heroData.name}</Name>
+            <Typewriter text="The world has no shortage of adults" speed={43} />
+          </ProfileArea>
+        </ScrollReveal>
 
-        {/* 日历区域（临时放置，居中） */}
-        <CalendarArea>
-          <CalendarCard />
-        </CalendarArea>
+        <ScrollReveal>
+          <CalendarArea>
+            <CalendarCard />
+          </CalendarArea>
+        </ScrollReveal>
 
-        {/* 卡片网格：6张 */}
+        {/* 卡片网格：4张 */}
         <CardsGrid>
           {cards.map((card, i) => {
             const trendColor = card.trend === 'up' ? '#22C55E' : card.trend === 'down' ? '#B9101E' : card.accent;
             const hasIndicator = card.progress !== undefined;
             return (
-              <Card key={i} delay={i}>
-                <CardTitle>
-                  <CardIcon accent={card.accent}>{card.icon}</CardIcon>
-                  <CardLabel>{card.label}</CardLabel>
+              <ScrollReveal key={i}>
+                <Card>
+                  <CardTitle>
+                    <CardIcon accent={card.accent}>{card.icon}</CardIcon>
+                    <CardLabel>{card.label}</CardLabel>
+                    {hasIndicator && (
+                      <CardIndicator color={trendColor}>
+                        {card.trend === 'up' ? (
+                          <span style={{
+                            width: 0, height: 0,
+                            borderLeft: '5px solid transparent',
+                            borderRight: '5px solid transparent',
+                            borderBottom: `7px solid ${trendColor}`,
+                          }} />
+                        ) : card.trend === 'down' ? (
+                          <span style={{
+                            width: 0, height: 0,
+                            borderLeft: '5px solid transparent',
+                            borderRight: '5px solid transparent',
+                            borderTop: `7px solid ${trendColor}`,
+                          }} />
+                        ) : null}
+                        {card.progress}%
+                      </CardIndicator>
+                    )}
+                  </CardTitle>
+                  <CardValue>{card.value}</CardValue>
                   {hasIndicator && (
-                    <CardIndicator color={trendColor}>
-                      {card.trend === 'up' ? (
-                        <span style={{
-                          width: 0, height: 0,
-                          borderLeft: '5px solid transparent',
-                          borderRight: '5px solid transparent',
-                          borderBottom: `7px solid ${trendColor}`,
-                        }} />
-                      ) : card.trend === 'down' ? (
-                        <span style={{
-                          width: 0, height: 0,
-                          borderLeft: '5px solid transparent',
-                          borderRight: '5px solid transparent',
-                          borderTop: `7px solid ${trendColor}`,
-                        }} />
-                      ) : null}
-                      {card.progress}%
-                    </CardIndicator>
+                    <ProgressTrack>
+                      <ProgressFill width={card.progress} color={card.accent} />
+                    </ProgressTrack>
                   )}
-                </CardTitle>
-                <CardValue>{card.value}</CardValue>
-                {hasIndicator && (
-                  <ProgressTrack>
-                    <ProgressFill width={card.progress} color={card.accent} />
-                  </ProgressTrack>
-                )}
-              </Card>
+                </Card>
+              </ScrollReveal>
             );
           })}
         </CardsGrid>
