@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { useScrollPosition } from '../hooks/useScrollPosition';
@@ -188,7 +189,7 @@ const NeoMenu = styled.ul`
   }
 `;
 
-const NeoLink = styled.a<{ active?: boolean }>`
+const NeoLink = styled(Link)<{ active?: boolean }>`
   position: relative;
   display: flex;
   align-items: center;
@@ -335,7 +336,7 @@ const MobileNavLinks = styled.ul<{ isOpen: boolean }>`
   }
 `;
 
-const MobileNavLink = styled.a`
+const MobileNavLink = styled(Link)`
   font-size: 18px;
   font-weight: 500;
   color: ${theme.colors.textSecondary};
@@ -524,27 +525,24 @@ function NavIcon({ icon }: { icon: string }) {
 
 export default function Navbar() {
   const { isScrolled } = useScrollPosition();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [statusCardOpen, setStatusCardOpen] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [initial, setInitial] = useState(true);
-  const [activeNav, setActiveNav] = useState('home');
   const workStatus = useWorkStatus();
+
+  // 根据当前路由判断激活的导航项
+  const activeNav = navItems.find(item => item.href === location.pathname)?.id || 'home';
 
   useEffect(() => {
     const timer = setTimeout(() => setInitial(false), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, id: string) => {
-    e.preventDefault();
-    setActiveNav(id);
+  const handleNavClick = () => {
     setIsMenuOpen(false);
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   };
 
   const handleAvatarClick = (e: React.MouseEvent) => {
@@ -583,9 +581,9 @@ export default function Navbar() {
         {navItems.map((item) => (
           <li key={item.id} style={{ position: 'relative' }}>
             <NeoLink
-              href={item.href}
+              to={item.href}
               active={activeNav === item.id}
-              onClick={(e) => handleNavClick(e, item.href, item.id)}
+              onClick={() => handleNavClick()}
             >
               <NavIcon icon={item.icon} />
               {item.label}
@@ -599,7 +597,7 @@ export default function Navbar() {
       <MobileNavLinks isOpen={isMenuOpen}>
         {navItems.map((item) => (
           <li key={item.id}>
-            <MobileNavLink href={item.href} onClick={(e) => handleNavClick(e, item.href, item.id)}>
+            <MobileNavLink to={item.href} onClick={() => handleNavClick()}>
               <NavIcon icon={item.icon} />
               {item.label}
             </MobileNavLink>

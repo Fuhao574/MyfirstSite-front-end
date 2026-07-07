@@ -55,8 +55,7 @@ function ScrollReveal({ children, className }: { children: React.ReactNode; clas
 /* Hero 容器 */
 const HeroSection = styled.section`
   position: relative;
-  min-height: 100vh;
-  padding: 120px ${theme.spacing.xl} ${theme.spacing['4xl']};
+  padding: 48px ${theme.spacing.xl} ${theme.spacing['4xl']};
   overflow: hidden;
 
   background: linear-gradient(
@@ -70,7 +69,7 @@ const HeroSection = styled.section`
   animation: ${shimmer} 15s ease-in-out infinite alternate;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    padding: 100px ${theme.spacing.md} ${theme.spacing['2xl']};
+    padding: 36px ${theme.spacing.md} ${theme.spacing['2xl']};
   }
 `;
 
@@ -444,7 +443,7 @@ export default function Hero() {
   ];
 
   return (
-    <HeroSection id="hero">
+    <HeroSection>
       <ParticleBackground />
       <Content>
         <ScrollReveal>

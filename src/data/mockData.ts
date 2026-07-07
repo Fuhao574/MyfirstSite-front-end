@@ -6,12 +6,12 @@ import type { Skill, Project, SocialLink, NavItem } from '../types';
 
 // 导航项
 export const navItems: NavItem[] = [
-  { id: 'home', label: '主页', href: '#hero', icon: 'Home' },
-  { id: 'blog', label: '博客', href: '#blog', icon: 'BookOpen' },
-  { id: 'projects', label: '项目', href: '#projects', icon: 'FolderOpen' },
-  { id: 'archive', label: '归档', href: '#archive', icon: 'Archive' },
-  { id: 'friends', label: '友链', href: '#friends', icon: 'Users' },
-  { id: 'about', label: '关于', href: '#about', icon: 'User' },
+  { id: 'home',     label: '主页',     href: '/home',     icon: 'Home' },
+  { id: 'blog',     label: '博客',     href: '/blog',     icon: 'BookOpen' },
+  { id: 'projects', label: '项目',     href: '/project',  icon: 'FolderOpen' },
+  { id: 'archive',  label: '归档',     href: '/archive',  icon: 'Archive' },
+  { id: 'friends',  label: '友链',     href: '/friends',  icon: 'Users' },
+  { id: 'about',    label: '关于',     href: '/about',    icon: 'User' },
 ];
 
 // Hero 区域数据
