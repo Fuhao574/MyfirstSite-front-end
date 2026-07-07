@@ -1,10 +1,10 @@
 /**
  * 顶部导航栏组件
- * 左侧小头像（悬停抖动+状态卡片），右侧 iCost 风格按钮组
+ * 左侧小头像，中间新拟态（Neumorphism）导航，右侧按钮组
  */
 
 import { useState, useEffect } from 'react';
-import { keyframes } from '@emotion/react';
+import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { useScrollPosition } from '../hooks/useScrollPosition';
 import { navItems } from '../data/mockData';
@@ -30,6 +30,29 @@ const shake = keyframes`
   60% { transform: translateX(2px) rotate(0deg); }
   70% { transform: translateX(-1px) rotate(0deg); }
   80% { transform: translateX(1px) rotate(0deg); }
+`;
+
+const selectPop = keyframes`
+  0%   { transform: scale(0.95) translateY(2px); }
+  50%  { transform: scale(1.05) translateY(-1px); }
+  100% { transform: scale(1)   translateY(2px); }
+`;
+
+const particleTop = keyframes`
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  40%  { opacity: 0.8; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(0); }
+`;
+
+const particleBottom = keyframes`
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  40%  { opacity: 0.8; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(18px) scale(0); }
+`;
+
+const ripple = keyframes`
+  0%   { opacity: 0.6; transform: scale(0.3); }
+  100% { opacity: 0;   transform: scale(2.2); }
 `;
 
 /* ============================================
@@ -96,7 +119,6 @@ const AvatarArea = styled.div`
   }
 `;
 
-/* 状态卡片 - 点击弹出，鼠标移开关闭 */
 const StatusCard = styled.div<{ show: boolean }>`
   position: absolute;
   top: 100%;
@@ -148,6 +170,196 @@ const StatusLabel = styled.span`
   color: ${theme.colors.textTertiary};
 `;
 
+/* ============================================
+   新拟态导航菜单（桌面端）
+   ============================================ */
+const NeoMenu = styled.ul`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 6px;
+  gap: 16px;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    display: none;
+  }
+`;
+
+const NeoLink = styled.a<{ active?: boolean }>`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 0.7rem;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: ${({ active }) => (active ? 600 : 500)};
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  color: ${({ active }) => (active ? '#ffffff' : '#2d3748')};
+  background: ${({ active }) =>
+    active ? 'linear-gradient(145deg, #3b82f6, #2563eb)' : 'transparent'};
+  box-shadow: ${({ active }) =>
+    active
+      ? 'inset 2px 2px 5px rgba(0,0,0,0.2), inset -2px -2px 5px rgba(255,255,255,0.1), 3px 3px 8px rgba(59,130,246,0.3)'
+      : 'none'};
+
+  ${({ active }) =>
+    active &&
+    css`
+      animation: ${selectPop} 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      transform: translateY(2px);
+    `}
+
+  /* 悬停特效 */
+  &:hover {
+    color: ${({ active }) => (active ? '#ffffff' : theme.colors.accentBlue)};
+    background: ${({ active }) =>
+      active ? 'linear-gradient(145deg, #3b82f6, #2563eb)' : 'rgba(99, 102, 241, 0.06)'};
+    box-shadow: ${({ active }) =>
+      active
+        ? 'inset 2px 2px 5px rgba(0,0,0,0.2), inset -2px -2px 5px rgba(255,255,255,0.1), 3px 3px 8px rgba(59,130,246,0.3)'
+        : '0 4px 12px rgba(99, 102, 241, 0.15)'};
+    transform: translateY(-2px);
+  }
+
+  /* 涟漪 */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.4) 0%,
+      transparent 60%
+    );
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  ${({ active }) =>
+    active &&
+    css`
+      &::before {
+        animation: ${ripple} 0.8s ease-out;
+      }
+    `}
+
+  /* 上粒子 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #60a5fa;
+    box-shadow: 0 0 6px #60a5fa;
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+
+  ${({ active }) =>
+    active &&
+    css`
+      &::after {
+        animation: ${particleTop} 0.8s ease-out forwards;
+      }
+    `}
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+  }
+`;
+
+/* 下粒子（单独元素避免伪元素冲突） */
+const ParticleBot = styled.span<{ active?: boolean }>`
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #93c5fd;
+  box-shadow: 0 0 6px #93c5fd;
+  opacity: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+
+  ${({ active }) =>
+    active &&
+    css`
+      animation: ${particleBottom} 0.8s ease-out forwards;
+    `}
+`;
+
+/* ============================================
+   移动端导航
+   ============================================ */
+const MobileNavLinks = styled.ul<{ isOpen: boolean }>`
+  display: none;
+  list-style: none;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    display: flex;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: ${theme.spacing['3xl']};
+    gap: 32px;
+    background: rgba(245, 247, 250, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transform: ${({ isOpen }) => (isOpen ? 'translateX(0)' : 'translateX(100%)')};
+    opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
+    transition: ${theme.transitions.default};
+    pointer-events: ${({ isOpen }) => (isOpen ? 'all' : 'none')};
+  }
+`;
+
+const MobileNavLink = styled.a`
+  font-size: 18px;
+  font-weight: 500;
+  color: ${theme.colors.textSecondary};
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  border-radius: ${theme.borderRadius.sm};
+  transition: ${theme.transitions.fast};
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.md};
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: ${theme.colors.accentBlue};
+    background: rgba(99, 102, 241, 0.06);
+  }
+`;
+
+/* ============================================
+   右侧按钮组
+   ============================================ */
 const RightSection = styled.div`
   display: flex;
   align-items: center;
@@ -159,74 +371,6 @@ const RightSection = styled.div`
   }
 `;
 
-const NavLinks = styled.ul<{ isOpen: boolean }>`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.md};
-  list-style: none;
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    position: fixed;
-    top: 64px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transform: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: ${theme.spacing['3xl']};
-    gap: ${theme.spacing.xl};
-    background: rgba(245, 247, 250, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transform: ${({ isOpen }) => (isOpen ? 'translateX(0)' : 'translateX(100%)')};
-    opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
-    transition: ${theme.transitions.default};
-    pointer-events: ${({ isOpen }) => (isOpen ? 'all' : 'none')};
-  }
-`;
-
-const NavLink = styled.a`
-  font-size: 14px;
-  font-weight: 500;
-  color: ${theme.colors.textSecondary};
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  border-radius: ${theme.borderRadius.sm};
-  transition: ${theme.transitions.fast};
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-
-  svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2;
-    transition: ${theme.transitions.fast};
-  }
-
-  &:hover {
-    color: ${theme.colors.accentBlue};
-    background: rgba(99, 102, 241, 0.06);
-
-    svg {
-      color: ${theme.colors.accentBlue};
-      transform: scale(1.15);
-    }
-  }
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    font-size: 18px;
-  }
-`;
-
-/* ============================================
-   iCost 风格按钮组
-   ============================================ */
 const ButtonPanel = styled.div`
   display: flex;
   align-items: center;
@@ -365,6 +509,19 @@ function useWorkStatus() {
   return status;
 }
 
+/* 图标映射 */
+function NavIcon({ icon }: { icon: string }) {
+  switch (icon) {
+    case 'Home': return <Home />;
+    case 'BookOpen': return <BookOpen />;
+    case 'Archive': return <Archive />;
+    case 'Users': return <Users />;
+    case 'FolderOpen': return <FolderOpen />;
+    case 'User': return <User />;
+    default: return <Home />;
+  }
+}
+
 export default function Navbar() {
   const { isScrolled } = useScrollPosition();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -372,6 +529,7 @@ export default function Navbar() {
   const [statusCardOpen, setStatusCardOpen] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [initial, setInitial] = useState(true);
+  const [activeNav, setActiveNav] = useState('home');
   const workStatus = useWorkStatus();
 
   useEffect(() => {
@@ -379,8 +537,9 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, id: string) => {
     e.preventDefault();
+    setActiveNav(id);
     setIsMenuOpen(false);
     const element = document.querySelector(href);
     if (element) {
@@ -406,7 +565,7 @@ export default function Navbar() {
     <NavContainer isScrolled={isScrolled}>
       <AvatarArea onClick={handleAvatarClick} onMouseLeave={handleAvatarLeave}>
         <LogoAvatar
-          src="https://q2.qlogo.cn/headimg_dl?dst_uin=963155227&spec=0" 
+          src="/avatar.jpg"
           alt="avatar"
           className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
         />
@@ -419,21 +578,34 @@ export default function Navbar() {
         </StatusCard>
       </AvatarArea>
 
-      <NavLinks isOpen={isMenuOpen}>
+      {/* 新拟态导航（桌面端） */}
+      <NeoMenu>
         {navItems.map((item) => (
-          <li key={item.id}>
-            <NavLink href={item.href} onClick={(e) => handleNavClick(e, item.href)}>
-              {item.icon === 'Home' && <Home />}
-              {item.icon === 'BookOpen' && <BookOpen />}
-              {item.icon === 'Archive' && <Archive />}
-              {item.icon === 'Users' && <Users />}
-              {item.icon === 'FolderOpen' && <FolderOpen />}
-              {item.icon === 'User' && <User />}
+          <li key={item.id} style={{ position: 'relative' }}>
+            <NeoLink
+              href={item.href}
+              active={activeNav === item.id}
+              onClick={(e) => handleNavClick(e, item.href, item.id)}
+            >
+              <NavIcon icon={item.icon} />
               {item.label}
-            </NavLink>
+            </NeoLink>
+            <ParticleBot active={activeNav === item.id} />
           </li>
         ))}
-      </NavLinks>
+      </NeoMenu>
+
+      {/* 移动端导航 */}
+      <MobileNavLinks isOpen={isMenuOpen}>
+        {navItems.map((item) => (
+          <li key={item.id}>
+            <MobileNavLink href={item.href} onClick={(e) => handleNavClick(e, item.href, item.id)}>
+              <NavIcon icon={item.icon} />
+              {item.label}
+            </MobileNavLink>
+          </li>
+        ))}
+      </MobileNavLinks>
 
       <RightSection>
         <ButtonPanel>
