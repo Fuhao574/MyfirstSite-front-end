@@ -11,7 +11,7 @@ import { heroData } from '../data/mockData';
 import ParticleBackground from './ParticleBackground';
 import CalendarCard from './CalendarCard';
 import {
-  MapPin, Clock, Globe, Wifi, Music, Wallet,
+  Globe, Wifi, Music, Wallet,
 } from 'lucide-react';
 
 /* 动画 */
@@ -184,111 +184,98 @@ const cardEnter = keyframes`
   to   { opacity: 1; transform: translateY(0) scale(1); }
 `;
 
-const Card = styled.div<{ accent: string; delay: number }>`
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
-  box-shadow: ${theme.shadowLight};
-  border: 1px solid rgba(0, 0, 0, 0.04);
+const Card = styled.div<{ delay: number }>`
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: ${theme.spacing.md};
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transition: ${theme.transitions.default};
   cursor: default;
-  position: relative;
   overflow: hidden;
 
   animation: ${cardEnter}
     ${({ delay }) => 0.4 + delay * 0.08}s
     cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
-  /* 左侧装饰条 */
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: ${({ accent }) => accent};
-    opacity: 0.6;
-  }
-
   &:hover {
     transform: translateY(-4px);
     box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.08),
-      0 12px 40px rgba(0, 0, 0, 0.06);
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 `;
 
-const CardHeader = styled.div`
+const CardTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: ${theme.spacing.md};
   margin-bottom: ${theme.spacing.md};
 `;
 
-const CardIcon = styled.div<{ bg: string }>`
-  width: 44px;
-  height: 44px;
-  border-radius: ${theme.borderRadius.full};
+const CardIcon = styled.div<{ accent: string }>`
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${({ bg }) => bg};
-  color: white;
+  background-color: ${({ accent }) => accent};
+  color: #ffffff;
   flex-shrink: 0;
 
   svg {
-    width: 20px;
-    height: 20px;
-    stroke-width: 2.2;
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
   }
 `;
 
-const CardInfo = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-`;
-
 const CardLabel = styled.span`
-  font-size: 12px;
-  color: ${theme.colors.textTertiary};
+  margin-left: ${theme.spacing.sm};
+  color: #374151;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
 `;
 
-const CardValue = styled.span<{ color: string }>`
-  font-size: 20px;
-  font-weight: 700;
+const CardIndicator = styled.span<{ color: string }>`
+  margin-left: auto;
   color: ${({ color }) => color};
-  line-height: 1.2;
-  letter-spacing: -0.3px;
+  font-weight: 600;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 `;
 
-const ProgressBarContainer = styled.div`
+const CardValue = styled.p`
+  margin: ${theme.spacing.sm} 0;
+  color: #1F2937;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-align: left;
+`;
+
+const ProgressTrack = styled.div`
+  position: relative;
+  background-color: #E5E7EB;
   width: 100%;
   height: 6px;
-  background: ${theme.colors.bgTertiary};
-  border-radius: ${theme.borderRadius.full};
+  border-radius: 3px;
   overflow: hidden;
-  margin-top: ${theme.spacing.sm};
 `;
 
-const ProgressBarFill = styled.div<{ width: number; color: string }>`
+const ProgressFill = styled.div<{ width: number; color: string }>`
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
   width: ${({ width }) => width}%;
-  background: ${({ color }) => color};
-  border-radius: ${theme.borderRadius.full};
+  background-color: ${({ color }) => color};
+  border-radius: 4px;
   transition: width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1.0);
-  opacity: 0.8;
-`;
-
-const CardSub = styled.span`
-  font-size: 13px;
-  color: ${theme.colors.textSecondary};
-  margin-top: ${theme.spacing.xs};
 `;
 
 /* ============================================
@@ -422,7 +409,7 @@ function useBrowserInfo() {
 
 export default function Hero() {
   const location = useVisitorLocation();
-  const { timeStr, dateStr } = useCurrentTime();
+  useCurrentTime();
   const browserInfo = useBrowserInfo();
 
   const cards = [
@@ -434,25 +421,11 @@ export default function Hero() {
       iconBg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
     },
     {
-      accent: '#F97316',
-      icon: <Clock />,
-      label: '当前时间',
-      value: timeStr,
-      iconBg: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-    },
-    {
       accent: '#14B8A6',
       icon: <Globe />,
       label: '浏览器 / 平台',
       value: browserInfo,
       iconBg: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
-    },
-    {
-      accent: '#8B5CF6',
-      icon: <MapPin />,
-      label: '访问日期',
-      value: dateStr,
-      iconBg: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
     },
     {
       accent: '#FF9500',
@@ -461,7 +434,7 @@ export default function Hero() {
       value: '127h',
       iconBg: 'linear-gradient(135deg, #FF9500 0%, #F97316 100%)',
       progress: 42,
-      sub: '本月累计 · 最爱周杰伦',
+      trend: 'down' as const,
     },
     {
       accent: '#3B82F6',
@@ -470,7 +443,7 @@ export default function Hero() {
       value: '¥3,280',
       iconBg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
       progress: 66,
-      sub: '总额 ¥5,000 · 剩余 ¥1,720',
+      trend: 'up' as const,
     },
   ];
 
@@ -494,23 +467,44 @@ export default function Hero() {
 
         {/* 卡片网格：6张 */}
         <CardsGrid>
-          {cards.map((card, i) => (
-            <Card key={i} accent={card.accent} delay={i}>
-              <CardHeader>
-                <CardIcon bg={card.iconBg}>{card.icon}</CardIcon>
-                <CardInfo>
+          {cards.map((card, i) => {
+            const trendColor = card.trend === 'up' ? '#22C55E' : card.trend === 'down' ? '#B9101E' : card.accent;
+            const hasIndicator = card.progress !== undefined;
+            return (
+              <Card key={i} delay={i}>
+                <CardTitle>
+                  <CardIcon accent={card.accent}>{card.icon}</CardIcon>
                   <CardLabel>{card.label}</CardLabel>
-                  <CardValue color={card.accent}>{card.value}</CardValue>
-                </CardInfo>
-              </CardHeader>
-              {card.progress && (
-                <ProgressBarContainer>
-                  <ProgressBarFill width={card.progress} color={card.accent} />
-                </ProgressBarContainer>
-              )}
-              {card.sub && <CardSub>{card.sub}</CardSub>}
-            </Card>
-          ))}
+                  {hasIndicator && (
+                    <CardIndicator color={trendColor}>
+                      {card.trend === 'up' ? (
+                        <span style={{
+                          width: 0, height: 0,
+                          borderLeft: '5px solid transparent',
+                          borderRight: '5px solid transparent',
+                          borderBottom: `7px solid ${trendColor}`,
+                        }} />
+                      ) : card.trend === 'down' ? (
+                        <span style={{
+                          width: 0, height: 0,
+                          borderLeft: '5px solid transparent',
+                          borderRight: '5px solid transparent',
+                          borderTop: `7px solid ${trendColor}`,
+                        }} />
+                      ) : null}
+                      {card.progress}%
+                    </CardIndicator>
+                  )}
+                </CardTitle>
+                <CardValue>{card.value}</CardValue>
+                {hasIndicator && (
+                  <ProgressTrack>
+                    <ProgressFill width={card.progress} color={card.accent} />
+                  </ProgressTrack>
+                )}
+              </Card>
+            );
+          })}
         </CardsGrid>
       </Content>
     </HeroSection>
