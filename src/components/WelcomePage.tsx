@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
+import Toast from './Toast';
 
 /* 装饰 SVG 浮动动画 */
 const floatStar = keyframes`
@@ -319,18 +320,28 @@ interface WelcomePageProps {
 export default function WelcomePage({ onEnter }: WelcomePageProps) {
   const [isSignup, setIsSignup] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const handleLetGo = (e: React.FormEvent) => {
     e.preventDefault();
-    setExiting(true);
-    // 等待退出动画播放完后调用 onEnter
-    setTimeout(() => onEnter(), 500);
+    // 先显示登录成功提示
+    setShowToast(true);
+    // 1.5s 后开始退出动画，让用户看到提示
+    setTimeout(() => {
+      setShowToast(false);
+      setExiting(true);
+      // 等待退出动画播放完后调用 onEnter
+      setTimeout(() => onEnter(), 500);
+    }, 1500);
   };
 
   // 如果正在退出，渲染退出动画
   if (exiting) {
     return (
       <ExitContainer>
+        {showToast && (
+          <Toast type="success" message="登录成功！欢迎回来" duration={1200} onClose={() => setShowToast(false)} />
+        )}
         <AnimatedContainer>
           <Wrapper>
             <CardSceneHover>
@@ -371,6 +382,9 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
 
   return (
     <AnimatedContainer>
+      {showToast && (
+        <Toast type="success" message="登录成功！欢迎回来" duration={1200} onClose={() => setShowToast(false)} />
+      )}
       <Wrapper>
         <Header>
           <ModeText dim={isSignup}>Log in</ModeText>
