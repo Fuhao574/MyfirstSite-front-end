@@ -34,9 +34,9 @@ const shake = keyframes`
 `;
 
 const selectPop = keyframes`
-  0%   { transform: scale(0.95) translateY(2px); }
-  50%  { transform: scale(1.05) translateY(-1px); }
-  100% { transform: scale(1)   translateY(2px); }
+  0%   { transform: scale(0.95); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
 `;
 
 const particleTop = keyframes`
@@ -203,7 +203,7 @@ const NeoLink = styled(Link)<{ active?: boolean }>`
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease, color 0.15s ease;
 
   color: ${({ active }) => (active ? '#ffffff' : '#2d3748')};
   background: ${({ active }) =>
@@ -217,11 +217,9 @@ const NeoLink = styled(Link)<{ active?: boolean }>`
     active &&
     css`
       animation: ${selectPop} 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-      transform: translateY(2px);
     `}
 
-  /* 悬停特效 */
+  /* 悬停特效（active 时不动，避免和回弹动画冲突） */
   &:hover {
     color: ${({ active }) => (active ? '#ffffff' : theme.colors.accentBlue)};
     background: ${({ active }) =>
@@ -230,7 +228,11 @@ const NeoLink = styled(Link)<{ active?: boolean }>`
       active
         ? 'inset 2px 2px 5px rgba(0,0,0,0.2), inset -2px -2px 5px rgba(255,255,255,0.1), 3px 3px 8px rgba(59,130,246,0.3)'
         : '0 4px 12px rgba(99, 102, 241, 0.15)'};
-    transform: translateY(-2px);
+    ${({ active }) =>
+      !active &&
+      css`
+        transform: translateY(-2px);
+      `}
   }
 
   /* 涟漪 */
