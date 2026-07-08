@@ -407,8 +407,8 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
             <CardFace side="front">
               <Title>Welcome!</Title>
               <Form onSubmit={handleLetGo}>
-                <Input name="email" placeholder="Email" type="email" required />
-                <Input name="password" placeholder="Password" type="password" required />
+                <Input name="email" placeholder="Email" type="email" defaultValue="test@test.com" required />
+                <Input name="password" placeholder="Password" type="password" defaultValue="test" required />
                 <Btn type="submit">Let's Go!</Btn>
               </Form>
             </CardFace>
