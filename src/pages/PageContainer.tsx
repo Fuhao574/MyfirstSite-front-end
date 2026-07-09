@@ -25,9 +25,9 @@ export const PageContainer = styled.div`
 export const Content = styled.div`
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: ${theme.spacing['4xl']} ${theme.spacing.xl};
+  padding: ${theme.spacing['4xl']} 40px;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     padding: ${theme.spacing['2xl']} ${theme.spacing.md};

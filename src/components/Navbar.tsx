@@ -69,9 +69,7 @@ const NavContainer = styled.nav<{ isScrolled: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 ${theme.spacing.xl};
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 40px;
   width: 100%;
 
   background: ${({ isScrolled }) =>
