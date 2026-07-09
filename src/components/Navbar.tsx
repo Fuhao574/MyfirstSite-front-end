@@ -112,9 +112,24 @@ const AvatarArea = styled.div`
   position: relative;
   cursor: pointer;
   transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
 
   &:hover {
-    transform: scale(1.15);
+    transform: scale(1.05);
+  }
+`;
+
+const SiteTitle = styled.span`
+  font-size: 18px;
+  font-weight: 800;
+  color: ${theme.colors.textPrimary};
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    display: none;
   }
 `;
 
@@ -567,6 +582,7 @@ export default function Navbar() {
           alt="avatar"
           className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
         />
+        <SiteTitle>Fuhao574</SiteTitle>
         <StatusCard show={statusCardOpen}>
           <StatusEmoji>{workStatus.emoji}</StatusEmoji>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
