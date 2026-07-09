@@ -39,13 +39,13 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/project" element={<Projects />} />
           <Route path="/archive" element={<Archive />} />
           <Route path="/friends" element={<Friends />} />
           <Route path="/about" element={<About />} />
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -9,5 +9,11 @@ export default defineConfig({
         plugins: ['@emotion/babel-plugin']
       }
     })
-  ]
+  ],
+  server: {
+    historyApiFallback: true
+  },
+  preview: {
+    historyApiFallback: true
+  }
 })

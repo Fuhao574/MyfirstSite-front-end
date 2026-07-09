@@ -6,7 +6,7 @@ import type { Skill, Project, SocialLink, NavItem } from '../types';
 
 // 导航项
 export const navItems: NavItem[] = [
-  { id: 'home',     label: '主页',     href: '/home',     icon: 'Home' },
+  { id: 'home',     label: '主页',     href: '/',         icon: 'Home' },
   { id: 'blog',     label: '博客',     href: '/blog',     icon: 'BookOpen' },
   { id: 'projects', label: '项目',     href: '/project',  icon: 'FolderOpen' },
   { id: 'archive',  label: '归档',     href: '/archive',  icon: 'Archive' },
