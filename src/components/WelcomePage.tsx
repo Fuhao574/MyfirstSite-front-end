@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { keyframes } from '@emotion/react';
+import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import Toast from './Toast';
@@ -28,6 +28,22 @@ const wiggle = keyframes`
   25%      { transform: rotate(2deg); }
   50%      { transform: rotate(-4deg); }
   75%      { transform: rotate(1deg); }
+`;
+
+/* 按钮点击爆裂动画 */
+const btnBurst = keyframes`
+  0%   { transform: scale(1) rotate(-1deg); }
+  20%  { transform: scale(0.85) rotate(3deg); }
+  40%  { transform: scale(1.15) rotate(-3deg); }
+  60%  { transform: scale(0.95) rotate(2deg); }
+  80%  { transform: scale(1.08) rotate(-1deg); }
+  100% { transform: scale(1) rotate(-1deg); }
+`;
+
+/* 粒子飞溅 */
+const particleFly = keyframes`
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
 `;
 
 const Wrapper = styled.div`
@@ -236,7 +252,7 @@ const Input = styled.input`
   }
 `;
 
-const Btn = styled.button`
+const Btn = styled.button<{ bursting?: boolean; alt?: boolean }>`
   margin: 15px 0;
   width: var(--btn-width);
   height: var(--btn-height);
@@ -250,15 +266,21 @@ const Btn = styled.button`
   box-shadow: 4px 4px 0px var(--ink);
   cursor: pointer;
   transition: all 0.15s ease;
-  background-color: ${({ "data-alt": alt }: { "data-alt"?: boolean }) =>
+  background-color: ${({ alt }) =>
     alt ? 'var(--secondary-btn)' : 'var(--primary-btn)'};
-  transform: ${({ "data-alt": alt }: { "data-alt"?: boolean }) =>
+  transform: ${({ alt }) =>
     alt ? 'rotate(1deg)' : 'rotate(-1deg)'};
 
+  ${({ bursting }) =>
+    bursting &&
+    css`
+      animation: ${btnBurst} 0.5s ease-out;
+    `}
+
   &:hover {
-    background-color: ${({ "data-alt": alt }: { "data-alt"?: boolean }) =>
+    background-color: ${({ alt }) =>
       alt ? 'var(--secondary-btn-hover)' : 'var(--primary-btn-hover)'};
-    transform: ${({ "data-alt": alt }: { "data-alt"?: boolean }) =>
+    transform: ${({ alt }) =>
       alt ? 'translateY(-2px) rotate(2deg)' : 'translateY(-2px) rotate(-2deg)'};
     box-shadow: 5px 5px 0px var(--ink);
   }
@@ -267,6 +289,30 @@ const Btn = styled.button`
     transform: translate(3px, 3px) rotate(0deg);
     box-shadow: 0px 0px 0px var(--ink);
   }
+`;
+
+/* 粒子容器 */
+const ParticleContainer = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  z-index: 10;
+`;
+
+const Particle = styled.span<{ color: string; delay: number; px: string; py: string }>`
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${props => props.color};
+  border: 1.5px solid var(--ink);
+  --px: ${props => props.px};
+  --py: ${props => props.py};
+  animation: ${particleFly} 0.6s ease-out forwards;
+  animation-delay: ${props => props.delay}ms;
+  top: -4px;
+  left: -4px;
 `;
 
 /* 标题悬停抖动 */
@@ -321,18 +367,40 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
   const [isSignup, setIsSignup] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [bursting, setBursting] = useState(false);
+  const [showParticles, setShowParticles] = useState(false);
+
+  /* 粒子数据：8 个粒子向四面八方飞溅 */
+  const particles = [
+    { color: '#ff6b6b', px: '60px',  py: '-40px', delay: 0 },
+    { color: '#4ecdc4', px: '-55px', py: '-35px', delay: 30 },
+    { color: '#ffd166', px: '50px',  py: '45px',  delay: 60 },
+    { color: '#06d6a0', px: '-60px', py: '50px',  delay: 20 },
+    { color: '#ef476f', px: '70px',  py: '10px',  delay: 40 },
+    { color: '#118ab2', px: '-70px', py: '-10px', delay: 10 },
+    { color: '#ffd166', px: '20px',  py: '-65px', delay: 50 },
+    { color: '#06d6a0', px: '-25px', py: '60px',  delay: 25 },
+  ];
 
   const handleLetGo = (e: React.FormEvent) => {
     e.preventDefault();
-    // 先显示登录成功提示
-    setShowToast(true);
-    // 1.5s 后开始退出动画，让用户看到提示
+    // 触发按钮爆裂动画 + 粒子飞溅
+    setBursting(true);
+    setShowParticles(true);
+    // 0.5s 后开始后续流程
     setTimeout(() => {
-      setShowToast(false);
-      setExiting(true);
-      // 等待退出动画播放完后调用 onEnter
-      setTimeout(() => onEnter(), 500);
-    }, 1500);
+      setBursting(false);
+      setShowParticles(false);
+      // 显示登录成功提示
+      setShowToast(true);
+      // 1.5s 后开始退出动画，让用户看到提示
+      setTimeout(() => {
+        setShowToast(false);
+        setExiting(true);
+        // 等待退出动画播放完后调用 onEnter
+        setTimeout(() => onEnter(), 500);
+      }, 1500);
+    }, 500);
   };
 
   // 如果正在退出，渲染退出动画
@@ -360,7 +428,16 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                   <Form onSubmit={handleLetGo}>
                     <Input name="email" placeholder="Email" type="email" required />
                     <Input name="password" placeholder="Password" type="password" required />
-                    <Btn type="submit">Let's Go!</Btn>
+                    <Btn type="submit" bursting={bursting}>
+                      Let's Go!
+                      {showParticles && (
+                        <ParticleContainer>
+                          {particles.map((p, i) => (
+                            <Particle key={i} color={p.color} delay={p.delay} px={p.px} py={p.py} />
+                          ))}
+                        </ParticleContainer>
+                      )}
+                    </Btn>
                   </Form>
                 </CardFace>
                 <CardFace side="back">
@@ -369,7 +446,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                     <Input name="username" placeholder="Name" type="text" required />
                     <Input name="email" placeholder="Email" type="email" required />
                     <Input name="password" placeholder="Password" type="password" required />
-                    <Btn type="submit" data-alt>Confirm!</Btn>
+                    <Btn type="submit" alt>Confirm!</Btn>
                   </Form>
                 </CardFace>
               </CardInner>
@@ -409,7 +486,16 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
               <Form onSubmit={handleLetGo}>
                 <Input name="email" placeholder="Email" type="email" defaultValue="test@test.com" required />
                 <Input name="password" placeholder="Password" type="password" defaultValue="test" required />
-                <Btn type="submit">Let's Go!</Btn>
+                <Btn type="submit" bursting={bursting}>
+                  Let's Go!
+                  {showParticles && (
+                    <ParticleContainer>
+                      {particles.map((p, i) => (
+                        <Particle key={i} color={p.color} delay={p.delay} px={p.px} py={p.py} />
+                      ))}
+                    </ParticleContainer>
+                  )}
+                </Btn>
               </Form>
             </CardFace>
             <CardFace side="back">
@@ -418,7 +504,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                 <Input name="username" placeholder="Name" type="text" required />
                 <Input name="email" placeholder="Email" type="email" required />
                 <Input name="password" placeholder="Password" type="password" required />
-                <Btn type="submit" data-alt>Confirm!</Btn>
+                <Btn type="submit" alt>Confirm!</Btn>
               </Form>
             </CardFace>
           </CardInner>
