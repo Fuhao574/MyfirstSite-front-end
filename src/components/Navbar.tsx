@@ -3,7 +3,7 @@
  * 左侧小头像，中间新拟态（Neumorphism）导航，右侧按钮组
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -14,7 +14,8 @@ import {
   Menu, X, Sun, Moon, Globe,
   Home, BookOpen, Archive, Users, FolderOpen, User,
 } from 'lucide-react';
-import LoginCard from './LoginCard';
+import LoginCard, { type LoginResult } from './LoginCard';
+import UserTooltip from './UserTooltip';
 
 /* 动画 */
 const scaleIn = keyframes`
@@ -112,10 +113,16 @@ const LogoAvatar = styled.img`
 const AvatarArea = styled.div`
   position: relative;
   cursor: pointer;
-  transition: transform 0.3s ease;
   display: flex;
   align-items: center;
   gap: ${theme.spacing.sm};
+`;
+
+const AvatarInner = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  transition: transform 0.3s ease;
 
   &:hover {
     transform: scale(1.05);
@@ -472,6 +479,9 @@ export default function Navbar() {
   const [shaking, setShaking] = useState(false);
   const [initial, setInitial] = useState(true);
   const [loginCardOpen, setLoginCardOpen] = useState(false);
+  const [loginResult, setLoginResult] = useState<LoginResult | null>(null);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const avatarAreaRef = useRef<HTMLDivElement>(null);
 
   // 根据当前路由判断激活的导航项
   const activeNav = navItems.find(item => item.href === location.pathname)?.id || 'home';
@@ -481,6 +491,22 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, []);
 
+  // 点击空白处关闭 tooltip + 3秒自动关闭
+  useEffect(() => {
+    if (!tooltipOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (avatarAreaRef.current && !avatarAreaRef.current.contains(e.target as Node)) {
+        setTooltipOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    const autoClose = setTimeout(() => setTooltipOpen(false), 3000);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      clearTimeout(autoClose);
+    };
+  }, [tooltipOpen]);
+
   const handleNavClick = () => {
     setIsMenuOpen(false);
   };
@@ -489,21 +515,42 @@ export default function Navbar() {
     e.stopPropagation();
     setShaking(false);
     requestAnimationFrame(() => setShaking(true));
-    setLoginCardOpen(true);
     setTimeout(() => setShaking(false), 500);
+
+    if (!loginResult) {
+      // 未登录 → 打开登录卡片
+      setLoginCardOpen(true);
+    } else if (tooltipOpen) {
+      // tooltip 可见 → 打开登录卡片 + 关闭 tooltip
+      setTooltipOpen(false);
+      setLoginCardOpen(true);
+    } else {
+      // 已登录但 tooltip 不可见 → 显示 tooltip
+      setTooltipOpen(true);
+    }
   };
 
-  const handleAvatarLeave = () => {};
+  const handleLoginSuccess = (result: LoginResult) => {
+    setLoginResult(result);
+    setLoginCardOpen(false);
+  };
+
+  const avatarSrc = loginResult?.avatarUrl || '/avatar.jpg';
 
   return (
     <NavContainer isScrolled={isScrolled}>
-      <AvatarArea onClick={handleAvatarClick} onMouseLeave={handleAvatarLeave}>
-        <LogoAvatar
-          src="/avatar.jpg"
-          alt="avatar"
-          className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
-        />
-        <SiteTitle>Fuhao574</SiteTitle>
+      <AvatarArea ref={avatarAreaRef} onClick={handleAvatarClick}>
+        <AvatarInner>
+          <LogoAvatar
+            src={avatarSrc}
+            alt="avatar"
+            className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
+          />
+          <SiteTitle>{loginResult?.username || 'Fuhao574'}</SiteTitle>
+        </AvatarInner>
+        {tooltipOpen && loginResult && (
+          <UserTooltip mode={loginResult.mode} username={loginResult.username} />
+        )}
       </AvatarArea>
 
       {/* 新拟态导航（桌面端） */}
@@ -558,7 +605,8 @@ export default function Navbar() {
       {loginCardOpen && (
         <LoginCard
           onClose={() => setLoginCardOpen(false)}
-          onSuccess={() => setLoginCardOpen(false)}
+          onSuccess={handleLoginSuccess}
+          initial={loginResult}
         />
       )}
     </NavContainer>

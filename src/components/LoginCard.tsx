@@ -514,24 +514,54 @@ const PreviewBtn = styled.button<{ primary?: boolean }>`
 /* ============================================
    组件
    ============================================ */
-interface LoginCardProps {
-  onClose: () => void;
-  onSuccess: () => void;
+export interface LoginResult {
+  mode: 'visitor' | 'friend';
+  username: string;
+  avatarUrl: string;
+  email?: string;
 }
 
-export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
-  const [isFriend, setIsFriend] = useState(false);
+interface LoginCardProps {
+  onClose: () => void;
+  onSuccess: (result: LoginResult) => void;
+  initial?: LoginResult | null;
+}
+
+export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProps) {
+  const [isFriend, setIsFriend] = useState(initial?.mode === 'friend');
 
   // Visitor 面状态
-  const [visitorName, setVisitorName] = useState('');
-  const [visitorAvatars, setVisitorAvatars] = useState(DEFAULT_AVATARS);
-  const [visitorAvatar, setVisitorAvatar] = useState(0);
+  const [visitorName, setVisitorName] = useState(
+    initial?.mode === 'visitor' ? initial.username : ''
+  );
+  const [visitorAvatars, setVisitorAvatars] = useState(
+    initial?.mode === 'visitor' && initial.avatarUrl
+      ? [...DEFAULT_AVATARS, { id: DEFAULT_AVATARS.length, url: initial.avatarUrl }]
+      : DEFAULT_AVATARS
+  );
+  const [visitorAvatar, setVisitorAvatar] = useState(
+    initial?.mode === 'visitor' && initial.avatarUrl
+      ? DEFAULT_AVATARS.length
+      : 0
+  );
 
   // Friend 面状态
-  const [friendName, setFriendName] = useState('');
-  const [friendEmail, setFriendEmail] = useState('');
-  const [friendAvatars, setFriendAvatars] = useState(DEFAULT_AVATARS);
-  const [friendAvatar, setFriendAvatar] = useState(0);
+  const [friendName, setFriendName] = useState(
+    initial?.mode === 'friend' ? initial.username : ''
+  );
+  const [friendEmail, setFriendEmail] = useState(
+    initial?.mode === 'friend' ? initial.email || '' : ''
+  );
+  const [friendAvatars, setFriendAvatars] = useState(
+    initial?.mode === 'friend' && initial.avatarUrl
+      ? [...DEFAULT_AVATARS, { id: DEFAULT_AVATARS.length, url: initial.avatarUrl }]
+      : DEFAULT_AVATARS
+  );
+  const [friendAvatar, setFriendAvatar] = useState(
+    initial?.mode === 'friend' && initial.avatarUrl
+      ? DEFAULT_AVATARS.length
+      : 0
+  );
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewTarget, setPreviewTarget] = useState<'visitor' | 'friend'>('visitor');
@@ -595,7 +625,19 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
     setTimeout(() => {
       setLoading(false);
       setClosing(true);
-      setTimeout(() => onSuccess(), 200);
+      const result: LoginResult = isFriend
+        ? {
+            mode: 'friend',
+            username: friendName,
+            avatarUrl: friendAvatars[friendAvatar]?.url || '',
+            email: friendEmail,
+          }
+        : {
+            mode: 'visitor',
+            username: visitorName,
+            avatarUrl: visitorAvatars[visitorAvatar]?.url || '',
+          };
+      setTimeout(() => onSuccess(result), 200);
     }, 1000);
   };
 
