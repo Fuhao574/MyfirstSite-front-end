@@ -5,6 +5,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
@@ -453,13 +454,21 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
   const [closing, setClosing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ESC 关闭
+  // ESC 关闭 + 锁定背景滚动
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose();
     };
     document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+
+    // 锁定 body 滚动
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = originalOverflow;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -499,7 +508,7 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
     }, 1000);
   };
 
-  return (
+  return createPortal(
     <Overlay closing={closing} onClick={handleClose}>
       <Card onClick={(e) => e.stopPropagation()}>
         <CloseButton onClick={handleClose}>
@@ -577,6 +586,7 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
 
         <Footer>专属数字身份</Footer>
       </Card>
-    </Overlay>
+    </Overlay>,
+    document.body
   );
 }
