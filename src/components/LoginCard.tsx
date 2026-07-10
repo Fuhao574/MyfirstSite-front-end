@@ -95,8 +95,9 @@ const CloseButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 20;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 
   svg {
     width: 16px;
@@ -601,16 +602,16 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
   return createPortal(
     <Overlay closing={closing} onClick={handleClose}>
       <CardShell onClick={(e) => e.stopPropagation()}>
-        <CloseButton onClick={handleClose}>
-          <X />
-        </CloseButton>
-
         {/* 3D 翻转场景 */}
         <FlipScene>
           <FlipInner flipped={isFriend}>
 
             {/* ========== 正面：Visitor ========== */}
             <CardFront>
+              <CloseButton onClick={handleClose}>
+                <X />
+              </CloseButton>
+
               {/* 上传预览 */}
               {previewImage && previewTarget === 'visitor' && (
                 <PreviewOverlay>
@@ -682,6 +683,10 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
 
             {/* ========== 背面：Friend ========== */}
             <CardBack>
+              <CloseButton onClick={handleClose}>
+                <X />
+              </CloseButton>
+
               {/* 上传预览 */}
               {previewImage && previewTarget === 'friend' && (
                 <PreviewOverlay>
