@@ -50,37 +50,23 @@ const SPECIAL_DATES: Record<string, string> = {
 const ALL_WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 
 /* ============================================
-   iCost 风格样式
+   统一卡片样式
    ============================================ */
 const CalendarWrapper = styled.div`
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
-  box-shadow: ${theme.shadowLight};
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  padding: ${theme.card.padding};
+  box-shadow: ${theme.card.shadow};
   position: relative;
   overflow: hidden;
 
   animation: ${cardEnter} 0.6s 0.2s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
   transition: ${theme.transitions.default};
 
-  /* 左侧装饰条 */
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-    opacity: 0.6;
-  }
-
   &:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.08),
-      0 12px 40px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    box-shadow: ${theme.card.shadowHover};
   }
 `;
 
@@ -411,7 +397,7 @@ export default function CalendarCard() {
 
   return (
     <CalendarWrapper>
-      <CalendarHeader>
+        <CalendarHeader>
         <HeaderLeft>
           <CalendarIcon>
             <Calendar />

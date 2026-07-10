@@ -1,7 +1,6 @@
 /**
  * 今天吃什么 · 食物老虎机组件
- * iCost 风格：白色底 + 左侧橙色装饰条
- * 三列滚动，依次停止，弹跳显示结果
+ * 渐变背景 + 光斑风格，三列滚动，依次停止，弹跳显示结果
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -78,40 +77,26 @@ const spinRotate = keyframes`
 `;
 
 /* ============================================
-   样式
+   统一卡片样式
    ============================================ */
 const MachineWrapper = styled.div`
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  box-shadow: ${theme.shadowLight};
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  box-shadow: ${theme.card.shadow};
   position: relative;
   overflow: hidden;
   transition: ${theme.transitions.default};
 
-  /* 左侧装饰条 - 橙色渐变 */
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
-    opacity: 0.7;
-  }
-
   &:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.08),
-      0 12px 40px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    box-shadow: ${theme.card.shadowHover};
   }
 `;
 
 /* 入场动画单独一层，避免与 hover transform 冲突 */
 const MachineEnter = styled.div`
-  padding: ${theme.spacing.lg};
+  padding: ${theme.card.padding};
   animation: ${cardEnter} 0.6s 0.15s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 `;
 

@@ -26,17 +26,23 @@ const shimmer = keyframes`
 `;
 
 const PlaceholderCard = styled.div<{ delay?: number }>`
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.lg};
-  box-shadow: ${theme.shadowLight};
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  padding: ${theme.card.padding};
+  box-shadow: ${theme.card.shadow};
   min-height: 200px;
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.sm};
 
   animation: ${placeholderEnter} 0.5s ${({ delay = 0 }) => `${delay * 0.1}s`} cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+  transition: ${theme.transitions.default};
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${theme.card.shadowHover};
+  }
 
   h3 {
     font-size: 18px;
@@ -47,7 +53,7 @@ const PlaceholderCard = styled.div<{ delay?: number }>`
 
   p {
     font-size: 14px;
-    color: ${theme.colors.textTertiary};
+    color: ${theme.colors.textSecondary};
     margin: 0;
     line-height: 1.6;
   }
@@ -62,7 +68,7 @@ const PlaceholderCard = styled.div<{ delay?: number }>`
   .skeleton-line {
     height: 12px;
     border-radius: 6px;
-    background: linear-gradient(90deg, ${theme.colors.bgTertiary} 25%, rgba(0,0,0,0.06) 50%, ${theme.colors.bgTertiary} 75%);
+    background: linear-gradient(90deg, #f3f6fa 25%, #e3e8ee 50%, #f3f6fa 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }

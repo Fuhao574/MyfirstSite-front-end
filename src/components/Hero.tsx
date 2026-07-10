@@ -9,7 +9,6 @@ import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { heroData } from '../data/mockData';
 import ParticleBackground from './ParticleBackground';
-import CalendarCard from './CalendarCard';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import {
   Globe, Wifi, Music, Wallet,
@@ -133,7 +132,7 @@ const Avatar = styled.img`
 const Name = styled.h1`
   font-size: 42px;
   font-weight: 700;
-  color: #1A1A2E;
+  color: ${theme.colors.textPrimary};
   letter-spacing: -1px;
   line-height: 1.2;
 
@@ -171,18 +170,6 @@ const Cursor = styled.span<{ blink: boolean }>`
 `;
 
 /* ============================================
-   日历区域（临时放置）
-   ============================================ */
-const CalendarArea = styled.div`
-  max-width: 360px;
-  margin: 0 auto ${theme.spacing['2xl']};
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    margin-bottom: ${theme.spacing.xl};
-  }
-`;
-
-/* ============================================
    卡片网格：6张卡片
    ============================================ */
 const CardsGrid = styled.div`
@@ -200,21 +187,18 @@ const CardsGrid = styled.div`
 `;
 
 const Card = styled.div`
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: ${theme.spacing.md};
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  padding: ${theme.card.padding};
+  box-shadow: ${theme.card.shadow};
   transition: ${theme.transitions.default};
   cursor: default;
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+    box-shadow: ${theme.card.shadowHover};
   }
 `;
 
@@ -409,34 +393,34 @@ export default function Hero() {
 
   const cards = [
     {
-      accent: '#3B82F6',
+      accent: '#2e7def',
       icon: <Wifi />,
       label: '你的位置',
       value: location,
-      iconBg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+      iconBg: 'linear-gradient(135deg, #2e7def 0%, #1a5fbf 100%)',
     },
     {
-      accent: '#14B8A6',
+      accent: '#2bc48a',
       icon: <Globe />,
       label: '浏览器 / 平台',
       value: browserInfo,
-      iconBg: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
+      iconBg: 'linear-gradient(135deg, #2bc48a 0%, #1ea673 100%)',
     },
     {
-      accent: '#FF9500',
+      accent: '#ff7a3d',
       icon: <Music />,
       label: '听歌时长',
       value: '127h',
-      iconBg: 'linear-gradient(135deg, #FF9500 0%, #F97316 100%)',
+      iconBg: 'linear-gradient(135deg, #ff7a3d 0%, #e8610f 100%)',
       progress: 42,
       trend: 'down' as const,
     },
     {
-      accent: '#3B82F6',
+      accent: '#2e7def',
       icon: <Wallet />,
       label: '当月预算',
       value: '¥3,280',
-      iconBg: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+      iconBg: 'linear-gradient(135deg, #2e7def 0%, #1a5fbf 100%)',
       progress: 66,
       trend: 'up' as const,
     },
@@ -454,12 +438,6 @@ export default function Hero() {
             <Name>{heroData.name}</Name>
             <Typewriter text="The world has no shortage of adults" speed={43} />
           </ProfileArea>
-        </ScrollReveal>
-
-        <ScrollReveal>
-          <CalendarArea>
-            <CalendarCard />
-          </CalendarArea>
         </ScrollReveal>
 
         {/* 卡片网格：4张 */}

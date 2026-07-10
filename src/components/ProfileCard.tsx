@@ -1,6 +1,6 @@
 /**
  * 个人介绍卡片组件
- * 大头像 + 名字 + 签名 + 社交链接
+ * 统一卡片样式：白底 + 细边框 + 柔和投影
  */
 
 import { keyframes } from '@emotion/react';
@@ -8,7 +8,7 @@ import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { Github, Twitter, Mail, Link as LinkIcon } from 'lucide-react';
 
-/* 入场动画：从下方淡入上移 */
+/* 入场动画 */
 const cardEnter = keyframes`
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -18,11 +18,10 @@ const cardEnter = keyframes`
    卡片容器
    ============================================ */
 const ProfileWrapper = styled.div`
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  box-shadow: ${theme.shadowLight};
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  position: relative;
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  box-shadow: ${theme.card.shadow};
   overflow: hidden;
   width: 100%;
 
@@ -30,43 +29,28 @@ const ProfileWrapper = styled.div`
   transition: ${theme.transitions.default};
 
   &:hover {
-    transform: translateY(-6px);
-    box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.08),
-      0 12px 40px rgba(0, 0, 0, 0.06);
+    box-shadow: ${theme.card.shadowHover};
+    transform: translateY(-2px);
   }
 `;
 
 /* ============================================
-   顶部渐变 Banner
-   ============================================ */
-const Banner = styled.div`
-  height: 90px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  width: 100%;
-`;
-
-/* ============================================
-   大头像
+   头像
    ============================================ */
 const Avatar = styled.img`
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   border-radius: ${theme.borderRadius.full};
-  border: 5px solid #ffffff;
+  border: 3px solid #ffffff;
   object-fit: cover;
   display: block;
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
+  margin: ${theme.spacing.lg} auto 0;
   background: ${theme.colors.bgTertiary};
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 16px rgba(14, 17, 22, 0.12);
   transition: ${theme.transitions.default};
-  z-index: 2;
 
   &:hover {
-    transform: translateX(-50%) scale(1.08);
+    transform: scale(1.06);
   }
 `;
 
@@ -74,28 +58,36 @@ const Avatar = styled.img`
    内容区
    ============================================ */
 const Content = styled.div`
-  padding: 0 ${theme.spacing.lg} ${theme.spacing.lg};
+  padding: ${theme.spacing.md} ${theme.card.padding.split(' ').slice(1).join(' ')} ${theme.card.padding.split(' ').slice(-1)[0]};
   text-align: center;
-  padding-top: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
 `;
 
 const Name = styled.h2`
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: ${theme.colors.textPrimary};
   margin: 0;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
 `;
 
 const Signature = styled.p`
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: ${theme.colors.textSecondary};
   margin: ${theme.spacing.xs} 0 0;
   line-height: 1.5;
+`;
+
+/* 分隔线 */
+const Divider = styled.div`
+  width: 36px;
+  height: 3px;
+  border-radius: 2px;
+  background: #e3e8ee;
+  margin: ${theme.spacing.md} 0;
 `;
 
 /* ============================================
@@ -104,47 +96,34 @@ const Signature = styled.p`
 const SocialRow = styled.div`
   display: flex;
   justify-content: center;
-  gap: ${theme.spacing.sm};
-  margin-top: ${theme.spacing.lg};
+  gap: 10px;
 `;
 
 const SocialButton = styled.a`
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${theme.colors.bgTertiary};
+  background: #f3f6fa;
   color: ${theme.colors.textSecondary};
   text-decoration: none;
+  border: 1px solid #eef2f6;
   transition: ${theme.transitions.default};
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     stroke-width: 2;
   }
 
   &:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: ${theme.colors.accentBlue};
     color: #ffffff;
-    transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
-  }
-
-  &:active {
-    transform: translateY(-1px);
-  }
-
-  @media (max-width: ${theme.breakpoints.mobile}) {
-    width: 38px;
-    height: 38px;
-
-    svg {
-      width: 16px;
-      height: 16px;
-    }
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 125, 239, 0.3);
   }
 `;
 
@@ -152,26 +131,10 @@ const SocialButton = styled.a`
    社交链接配置
    ============================================ */
 const SOCIAL_LINKS = [
-  {
-    label: 'GitHub',
-    href: 'https://github.com/fuhao574',
-    icon: <Github />,
-  },
-  {
-    label: 'Twitter / X',
-    href: '#',
-    icon: <Twitter />,
-  },
-  {
-    label: 'Email',
-    href: 'mailto:your@email.com',
-    icon: <Mail />,
-  },
-  {
-    label: 'Website',
-    href: '#',
-    icon: <LinkIcon />,
-  },
+  { label: 'GitHub', href: 'https://github.com/fuhao574', icon: <Github /> },
+  { label: 'Twitter / X', href: '#', icon: <Twitter /> },
+  { label: 'Email', href: 'mailto:your@email.com', icon: <Mail /> },
+  { label: 'Website', href: '#', icon: <LinkIcon /> },
 ];
 
 /* ============================================
@@ -180,11 +143,11 @@ const SOCIAL_LINKS = [
 export default function ProfileCard() {
   return (
     <ProfileWrapper>
-      <Banner />
       <Avatar src="/avatar.jpg" alt="Fuhao574 的头像" />
       <Content>
         <Name>Fuhao574</Name>
         <Signature>The World Has No Shortage Of Adults</Signature>
+        <Divider />
         <SocialRow>
           {SOCIAL_LINKS.map((item) => (
             <SocialButton

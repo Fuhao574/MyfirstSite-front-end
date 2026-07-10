@@ -1,6 +1,6 @@
 /**
- * 主题配置 - iCost / iOS 风格设计系统
- * 低饱和度、柔和、毛玻璃、圆角
+ * 主题配置
+ * 统一卡片风格：白底 + 细边框 + 柔和投影
  */
 
 export const theme = {
@@ -11,16 +11,16 @@ export const theme = {
     bgTertiary: '#EDF1F7',
 
     // 文字色
-    textPrimary: '#1A1A2E',
-    textSecondary: '#6B7280',
+    textPrimary: '#0e1116',
+    textSecondary: '#5b6472',
     textTertiary: '#9CA3AF',
 
-    // 强调色 - 低饱和度渐变
-    accentBlue: '#6366F1',
+    // 强调色
+    accentBlue: '#2e7def',
     accentPurple: '#8B5CF6',
     accentPink: '#EC4899',
-    accentTeal: '#14B8A6',
-    accentOrange: '#F97316',
+    accentTeal: '#2bc48a',
+    accentOrange: '#ff7a3d',
 
     // 渐变组合
     gradientBlue: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -37,6 +37,16 @@ export const theme = {
   shadowLight: '0 1px 3px rgba(0, 0, 0, 0.04)',
   shadowMedium: '0 4px 20px rgba(0, 0, 0, 0.06)',
   shadowHeavy: '0 8px 32px rgba(0, 0, 0, 0.08)',
+
+  // 统一卡片样式
+  card: {
+    bg: '#ffffff',
+    border: '1px solid #e3e8ee',
+    radius: '28px',
+    shadow: '0 1px 1px rgba(14, 17, 22, 0.04), 0 20px 40px -24px rgba(14, 17, 22, 0.18)',
+    shadowHover: '0 2px 2px rgba(14, 17, 22, 0.06), 0 28px 48px -24px rgba(14, 17, 22, 0.22)',
+    padding: '22px 24px 18px',
+  },
 
   borderRadius: {
     sm: '8px',
