@@ -1,26 +1,26 @@
 /**
- * WelcomePage — 简洁风格的登录页
- * 参考 personal-homepage 项目设计：头像选择 + 昵称输入
- * 纯白背景 + 居中布局 + 柔和动画
+ * LoginCard — 登录卡片弹窗
+ * 点击导航栏头像时展示，包含头像选择 + 昵称输入
+ * 统一卡片样式：白底 + 细边框 + 柔和投影
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
-import Toast from './Toast';
-import { User, Plus, ArrowRight } from 'lucide-react';
+import { theme } from '../styles/theme';
+import { User, Plus, ArrowRight, X } from 'lucide-react';
 
 /* ============================================
    动画
    ============================================ */
-const fadeInUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-`;
-
-const fadeIn = keyframes`
+const overlayFadeIn = keyframes`
   from { opacity: 0; }
   to   { opacity: 1; }
+`;
+
+const cardSlideIn = keyframes`
+  from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 `;
 
 const sparklePulse = keyframes`
@@ -39,9 +39,9 @@ const avatarPop = keyframes`
   100% { transform: scale(1.1); }
 `;
 
-const fadeOutScale = keyframes`
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(1.05); filter: blur(8px); }
+const fadeOut = keyframes`
+  from { opacity: 1; }
+  to   { opacity: 0; }
 `;
 
 /* ============================================
@@ -55,59 +55,100 @@ const DEFAULT_AVATARS = [
 ];
 
 /* ============================================
-   布局
+   遮罩层
    ============================================ */
-const Wrapper = styled.div`
+const Overlay = styled.div<{ closing: boolean }>`
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-height: 100vh;
-  background: #ffffff;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: ${({ closing }) => (closing ? fadeOut : overlayFadeIn)} 0.2s ease both;
+`;
+
+/* ============================================
+   登录卡片 — 统一卡片样式
+   ============================================ */
+const Card = styled.div`
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  box-shadow: 0 25px 60px rgba(14, 17, 22, 0.2);
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  padding: 28px 28px 24px;
   position: relative;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  animation: ${cardSlideIn} 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    width: calc(100vw - 32px);
+    padding: 24px 20px 20px;
+  }
 `;
 
-const Container = styled.div`
-  width: 100%;
-  max-width: 420px;
-  padding: 40px 32px;
+/* 关闭按钮 */
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f3f6fa;
+  color: #5b6472;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  animation: ${fadeIn} 0.5s ease both;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: #e3e8ee;
+    color: #0e1116;
+  }
 `;
 
-/* 顶部装饰图标 */
+/* ============================================
+   内容区
+   ============================================ */
 const SparkleIcon = styled.div`
-  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
   animation: ${sparklePulse} 2.5s ease-in-out infinite;
 
   svg {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     fill: #0e1116;
   }
 `;
 
-/* 标题 */
 const Headline = styled.h1`
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 800;
   color: #0e1116;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   letter-spacing: -0.5px;
   text-align: center;
-  animation: ${fadeInUp} 0.5s 0.1s ease both;
 `;
 
 const Subheadline = styled.p`
-  font-size: 14px;
+  font-size: 13px;
   color: #5b6472;
-  margin: 0 0 36px 0;
+  margin: 0 0 28px 0;
   text-align: center;
-  animation: ${fadeInUp} 0.5s 0.2s ease both;
 `;
 
 /* ============================================
@@ -117,17 +158,16 @@ const AvatarRow = styled.div`
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 40px;
-  animation: ${fadeInUp} 0.5s 0.3s ease both;
+  gap: 14px;
+  margin-bottom: 28px;
 `;
 
 const AvatarButton = styled.button<{ selected: boolean }>`
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: 4px solid ${({ selected }) => (selected ? '#0e1116' : '#e3e8ee')};
+  border: 3px solid ${({ selected }) => (selected ? '#0e1116' : '#e3e8ee')};
   overflow: hidden;
   cursor: pointer;
   flex-shrink: 0;
@@ -145,7 +185,7 @@ const AvatarButton = styled.button<{ selected: boolean }>`
     selected
       ? css`
           transform: scale(1.1);
-          box-shadow: 0 8px 20px rgba(14, 17, 22, 0.15);
+          box-shadow: 0 6px 16px rgba(14, 17, 22, 0.15);
           animation: ${avatarPop} 0.3s ease both;
         `
       : css`
@@ -155,7 +195,7 @@ const AvatarButton = styled.button<{ selected: boolean }>`
           &:hover {
             opacity: 1;
             filter: grayscale(0);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
           }
         `}
 
@@ -170,10 +210,10 @@ const AvatarButton = styled.button<{ selected: boolean }>`
 `;
 
 const UploadButton = styled.button`
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: 4px dashed #d1d5db;
+  border: 3px dashed #d1d5db;
   background: #f9fafb;
   color: #9ca3af;
   display: flex;
@@ -184,8 +224,8 @@ const UploadButton = styled.button`
   transition: all 0.2s ease;
 
   svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
 
   &:hover {
@@ -206,18 +246,17 @@ const Form = styled.form`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  animation: ${fadeInUp} 0.5s 0.4s ease both;
+  gap: 20px;
 `;
 
 const FieldGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 `;
 
 const FieldLabel = styled.label`
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #374151;
   display: flex;
@@ -226,21 +265,21 @@ const FieldLabel = styled.label`
   padding-left: 4px;
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     color: #9ca3af;
   }
 `;
 
 const TextInput = styled.input`
   width: 100%;
-  padding: 16px 20px;
-  font-size: 16px;
+  padding: 14px 18px;
+  font-size: 15px;
   font-weight: 600;
   color: #0e1116;
   background: #f9fafb;
   border: 1px solid #e3e8ee;
-  border-radius: 20px;
+  border-radius: 16px;
   outline: none;
   transition: all 0.15s ease;
   box-sizing: border-box;
@@ -263,11 +302,11 @@ const TextInput = styled.input`
    ============================================ */
 const SubmitButton = styled.button<{ disabled: boolean }>`
   width: 100%;
-  padding: 16px;
-  font-size: 17px;
+  padding: 14px;
+  font-size: 16px;
   font-weight: 800;
   border: none;
-  border-radius: 20px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -282,12 +321,12 @@ const SubmitButton = styled.button<{ disabled: boolean }>`
   ${({ disabled }) =>
     !disabled &&
     css`
-      box-shadow: 0 10px 30px rgba(14, 17, 22, 0.2);
+      box-shadow: 0 8px 24px rgba(14, 17, 22, 0.2);
 
       &:hover {
         background: #000000;
         transform: translateY(-2px);
-        box-shadow: 0 14px 36px rgba(14, 17, 22, 0.25);
+        box-shadow: 0 12px 30px rgba(14, 17, 22, 0.25);
       }
 
       &:active {
@@ -296,9 +335,8 @@ const SubmitButton = styled.button<{ disabled: boolean }>`
     `}
 
   svg {
-    width: 22px;
-    height: 22px;
-    animation: ${({ disabled }) => (disabled ? 'none' : css`none`)} ;
+    width: 20px;
+    height: 20px;
   }
 
   &:hover svg {
@@ -310,72 +348,53 @@ const SubmitButton = styled.button<{ disabled: boolean }>`
    底部
    ============================================ */
 const Footer = styled.div`
-  margin-top: 48px;
-  font-size: 11px;
+  margin-top: 24px;
+  font-size: 10px;
   color: #9ca3af;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
   text-align: center;
-  animation: ${fadeIn} 0.5s 0.6s ease both;
-`;
-
-/* ============================================
-   退出动画
-   ============================================ */
-const ExitContainer = styled.div`
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  animation: ${fadeOutScale} 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 `;
 
 /* ============================================
    上传预览弹窗
    ============================================ */
 const PreviewOverlay = styled.div`
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 100;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  animation: ${fadeIn} 0.2s ease both;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  border-radius: ${theme.card.radius};
+  animation: ${overlayFadeIn} 0.2s ease both;
 `;
 
 const PreviewModal = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 32px;
-  border: 1px solid #f3f6fa;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
-  width: 320px;
+  padding: 20px;
 `;
 
 const PreviewTitle = styled.h3`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #0e1116;
-  margin: 0 0 24px 0;
+  margin: 0 0 20px 0;
 `;
 
 const PreviewAvatar = styled.div`
-  width: 128px;
-  height: 128px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  border: 4px solid #0e1116;
+  border: 3px solid #0e1116;
   overflow: hidden;
-  margin-bottom: 32px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   img {
     width: 100%;
@@ -386,15 +405,15 @@ const PreviewAvatar = styled.div`
 
 const PreviewButtons = styled.div`
   display: flex;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
 `;
 
 const PreviewBtn = styled.button<{ primary?: boolean }>`
   flex: 1;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 9999px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -407,7 +426,7 @@ const PreviewBtn = styled.button<{ primary?: boolean }>`
     ${({ primary }) =>
       primary
         ? css`
-            box-shadow: 0 8px 20px rgba(14, 17, 22, 0.25);
+            box-shadow: 0 6px 16px rgba(14, 17, 22, 0.25);
             transform: translateY(-2px);
           `
         : css`
@@ -420,22 +439,33 @@ const PreviewBtn = styled.button<{ primary?: boolean }>`
 /* ============================================
    组件
    ============================================ */
-interface WelcomePageProps {
-  onEnter: () => void;
+interface LoginCardProps {
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function WelcomePage({ onEnter }: WelcomePageProps) {
+export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
   const [username, setUsername] = useState('');
   const [avatars, setAvatars] = useState(DEFAULT_AVATARS);
   const [selectedAvatar, setSelectedAvatar] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [exiting, setExiting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [closing, setClosing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAvatarClick = (id: number) => {
-    setSelectedAvatar(id);
+  // ESC 关闭
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(() => onClose(), 200);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -462,53 +492,36 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
     if (!username || loading) return;
 
     setLoading(true);
-    // 模拟登录过程
     setTimeout(() => {
       setLoading(false);
-      setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-        setExiting(true);
-        setTimeout(() => onEnter(), 500);
-      }, 1200);
+      setClosing(true);
+      setTimeout(() => onSuccess(), 200);
     }, 1000);
   };
 
-  /* 退出动画 */
-  if (exiting) {
-    return (
-      <ExitContainer>
-        {showToast && (
-          <Toast type="success" message="登录成功！欢迎来访" duration={1200} onClose={() => setShowToast(false)} />
-        )}
-      </ExitContainer>
-    );
-  }
-
   return (
-    <Wrapper>
-      {showToast && (
-        <Toast type="success" message="登录成功！欢迎来访" duration={1200} onClose={() => setShowToast(false)} />
-      )}
+    <Overlay closing={closing} onClick={handleClose}>
+      <Card onClick={(e) => e.stopPropagation()}>
+        <CloseButton onClick={handleClose}>
+          <X />
+        </CloseButton>
 
-      {/* 上传预览弹窗 */}
-      {previewImage && (
-        <PreviewOverlay>
-          <PreviewModal>
-            <PreviewTitle>预览头像</PreviewTitle>
-            <PreviewAvatar>
-              <img src={previewImage} alt="preview" />
-            </PreviewAvatar>
-            <PreviewButtons>
-              <PreviewBtn onClick={() => setPreviewImage(null)}>取消</PreviewBtn>
-              <PreviewBtn primary onClick={confirmCustomAvatar}>确认</PreviewBtn>
-            </PreviewButtons>
-          </PreviewModal>
-        </PreviewOverlay>
-      )}
+        {/* 上传预览 */}
+        {previewImage && (
+          <PreviewOverlay>
+            <PreviewModal>
+              <PreviewTitle>预览头像</PreviewTitle>
+              <PreviewAvatar>
+                <img src={previewImage} alt="preview" />
+              </PreviewAvatar>
+              <PreviewButtons>
+                <PreviewBtn onClick={() => setPreviewImage(null)}>取消</PreviewBtn>
+                <PreviewBtn primary onClick={confirmCustomAvatar}>确认</PreviewBtn>
+              </PreviewButtons>
+            </PreviewModal>
+          </PreviewOverlay>
+        )}
 
-      <Container>
-        {/* 顶部装饰 */}
         <SparkleIcon>
           <svg viewBox="0 0 100 100">
             <path d="M50 0 Q50 50 100 50 Q50 50 50 100 Q50 50 0 50 Q50 50 50 0 Z" />
@@ -524,13 +537,11 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
             <AvatarButton
               key={avatar.id}
               selected={selectedAvatar === avatar.id}
-              onClick={() => handleAvatarClick(avatar.id)}
+              onClick={() => setSelectedAvatar(avatar.id)}
             >
               <img src={avatar.url} alt="avatar" />
             </AvatarButton>
           ))}
-
-          {/* 上传按钮 */}
           <UploadButton onClick={() => fileInputRef.current?.click()}>
             <Plus />
           </UploadButton>
@@ -554,6 +565,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
               value={username}
               placeholder="在此输入您的昵称..."
               onChange={(e) => setUsername(e.target.value)}
+              autoFocus
             />
           </FieldGroup>
 
@@ -564,7 +576,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
         </Form>
 
         <Footer>专属数字身份</Footer>
-      </Container>
-    </Wrapper>
+      </Card>
+    </Overlay>
   );
 }

@@ -14,6 +14,7 @@ import {
   Menu, X, Sun, Moon, Globe,
   Home, BookOpen, Archive, Users, FolderOpen, User,
 } from 'lucide-react';
+import LoginCard from './LoginCard';
 
 /* 动画 */
 const scaleIn = keyframes`
@@ -131,57 +132,6 @@ const SiteTitle = styled.span`
   @media (max-width: ${theme.breakpoints.tablet}) {
     display: none;
   }
-`;
-
-const StatusCard = styled.div<{ show: boolean }>`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 10px;
-  background: ${theme.colors.bgSecondary};
-  border-radius: ${theme.borderRadius.lg};
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  white-space: nowrap;
-  z-index: 10;
-  opacity: ${({ show }) => (show ? 1 : 0)};
-  pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
-  transform: ${({ show }) => (show ? 'translateY(0)' : 'translateY(8px)')};
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1.0);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 16px;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-bottom: 6px solid ${theme.colors.bgSecondary};
-  }
-`;
-
-const StatusEmoji = styled.span`
-  font-size: 24px;
-  line-height: 1;
-`;
-
-const StatusText = styled.span<{ color: string }>`
-  font-size: 14px;
-  font-weight: 700;
-  color: ${({ color }) => color};
-`;
-
-const StatusLabel = styled.span`
-  font-size: 11px;
-  color: ${theme.colors.textTertiary};
 `;
 
 /* ============================================
@@ -501,30 +451,6 @@ const MenuButton = styled.button`
   }
 `;
 
-/* 工作状态 */
-function useWorkStatus() {
-  const [status, setStatus] = useState({ text: '加载中...', emoji: '⏳', color: '#9CA3AF' });
-
-  useEffect(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    const day = now.getDay();
-
-    const isWeekday = day >= 1 && day <= 5;
-    const isWorkHour = hour >= 9 && hour < 18;
-
-    if (isWeekday && isWorkHour) {
-      setStatus({ text: '摸鱼中', emoji: '🐟', color: '#3B82F6' });
-    } else if (isWeekday && !isWorkHour) {
-      setStatus({ text: 'Happy中', emoji: '🎮', color: '#8B5CF6' });
-    } else {
-      setStatus({ text: '享受周末', emoji: '🎉', color: '#F97316' });
-    }
-  }, []);
-
-  return status;
-}
-
 /* 图标映射 */
 function NavIcon({ icon }: { icon: string }) {
   switch (icon) {
@@ -543,10 +469,9 @@ export default function Navbar() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [statusCardOpen, setStatusCardOpen] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [initial, setInitial] = useState(true);
-  const workStatus = useWorkStatus();
+  const [loginCardOpen, setLoginCardOpen] = useState(false);
 
   // 根据当前路由判断激活的导航项
   const activeNav = navItems.find(item => item.href === location.pathname)?.id || 'home';
@@ -563,16 +488,12 @@ export default function Navbar() {
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShaking(false);
-    requestAnimationFrame(() => {
-      setShaking(true);
-      setStatusCardOpen(true);
-    });
+    requestAnimationFrame(() => setShaking(true));
+    setLoginCardOpen(true);
     setTimeout(() => setShaking(false), 500);
   };
 
-  const handleAvatarLeave = () => {
-    setStatusCardOpen(false);
-  };
+  const handleAvatarLeave = () => {};
 
   return (
     <NavContainer isScrolled={isScrolled}>
@@ -583,13 +504,6 @@ export default function Navbar() {
           className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
         />
         <SiteTitle>Fuhao574</SiteTitle>
-        <StatusCard show={statusCardOpen}>
-          <StatusEmoji>{workStatus.emoji}</StatusEmoji>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <StatusText color={workStatus.color}>{workStatus.text}</StatusText>
-            <StatusLabel>当前状态</StatusLabel>
-          </div>
-        </StatusCard>
       </AvatarArea>
 
       {/* 新拟态导航（桌面端） */}
@@ -640,6 +554,13 @@ export default function Navbar() {
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </MenuButton>
       </RightSection>
+
+      {loginCardOpen && (
+        <LoginCard
+          onClose={() => setLoginCardOpen(false)}
+          onSuccess={() => setLoginCardOpen(false)}
+        />
+      )}
     </NavContainer>
   );
 }

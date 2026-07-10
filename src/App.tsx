@@ -1,12 +1,10 @@
 /**
  * App 主组件
- * 路由结构：WelcomePage → 主页路由
+ * 直接进入主页，登录通过导航栏头像点击触发
  */
 
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
-import WelcomePage from './components/WelcomePage';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Blog from './pages/Blog';
@@ -20,35 +18,22 @@ const AppContainer = styled.div`
 `;
 
 function App() {
-  const [entered, setEntered] = useState(() => sessionStorage.getItem('entered') === 'true');
-
-  const handleEnter = () => {
-    sessionStorage.setItem('entered', 'true');
-    setEntered(true);
-  };
-
-  if (!entered) {
-    return (
-      <AppContainer>
-        <WelcomePage onEnter={handleEnter} />
-      </AppContainer>
-    );
-  }
-
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/project" element={<Projects />} />
-          <Route path="/archive" element={<Archive />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/home" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AppContainer>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/project" element={<Projects />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AppContainer>
   );
 }
 
