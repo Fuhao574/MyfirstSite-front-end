@@ -1,6 +1,6 @@
 /**
  * LoginCard — 登录卡片弹窗
- * 点击导航栏头像时展示，包含头像选择 + 昵称输入
+ * Visitor / Friend 双面翻转卡片
  * 统一卡片样式：白底 + 细边框 + 柔和投影
  */
 
@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
-import { User, Plus, ArrowRight, X } from 'lucide-react';
+import { User, Plus, ArrowRight, X, Mail } from 'lucide-react';
 
 /* ============================================
    动画
@@ -22,11 +22,6 @@ const overlayFadeIn = keyframes`
 const cardSlideIn = keyframes`
   from { opacity: 0; transform: translateY(-12px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
-`;
-
-const sparklePulse = keyframes`
-  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  50%      { transform: scale(1.15) rotate(8deg); opacity: 0.8; }
 `;
 
 const arrowBounce = keyframes`
@@ -72,27 +67,20 @@ const Overlay = styled.div<{ closing: boolean }>`
 `;
 
 /* ============================================
-   登录卡片 — 统一卡片样式
+   卡片外层（定位 + 关闭按钮）
    ============================================ */
-const Card = styled.div`
-  background: ${theme.card.bg};
-  border: ${theme.card.border};
-  border-radius: ${theme.card.radius};
-  box-shadow: 0 25px 60px rgba(14, 17, 22, 0.2);
+const CardShell = styled.div`
   width: 380px;
   max-width: calc(100vw - 32px);
-  padding: 28px 28px 24px;
   position: relative;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   animation: ${cardSlideIn} 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 
   @media (max-width: ${theme.breakpoints.mobile}) {
     width: calc(100vw - 32px);
-    padding: 24px 20px 20px;
   }
 `;
 
-/* 关闭按钮 */
 const CloseButton = styled.button`
   position: absolute;
   top: 16px;
@@ -107,6 +95,7 @@ const CloseButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  z-index: 20;
   transition: all 0.15s ease;
 
   svg {
@@ -121,21 +110,105 @@ const CloseButton = styled.button`
 `;
 
 /* ============================================
-   内容区
+   切换开关（Visitor / Friend）
    ============================================ */
-const SparkleIcon = styled.div`
+const ToggleHeader = styled.div`
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  animation: ${sparklePulse} 2.5s ease-in-out infinite;
+  gap: 12px;
+  margin-bottom: 20px;
+`;
 
-  svg {
-    width: 28px;
-    height: 28px;
-    fill: #0e1116;
+const ModeText = styled.span<{ active: boolean }>`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ active }) => (active ? '#0e1116' : '#9ca3af')};
+  transition: color 0.3s ease;
+  user-select: none;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+`;
+
+const SwitchTrack = styled.button<{ checked: boolean }>`
+  position: relative;
+  width: 46px;
+  height: 24px;
+  border-radius: 9999px;
+  border: 2px solid #0e1116;
+  background: ${({ checked }) => (checked ? '#2e7def' : '#ffd166')};
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 2px 2px 0 #0e1116;
+  transition: background 0.3s ease;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 #0e1116;
   }
 `;
 
+const SwitchHandle = styled.span<{ checked: boolean }>`
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #0e1116;
+  transform: ${({ checked }) => (checked ? 'translateX(22px)' : 'translateX(0)')};
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+`;
+
+/* ============================================
+   3D 翻转场景
+   ============================================ */
+const FlipScene = styled.div`
+  perspective: 1200px;
+  width: 100%;
+`;
+
+const FlipInner = styled.div<{ flipped: boolean }>`
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform: ${({ flipped }) => (flipped ? 'rotateY(180deg)' : 'rotateY(0)')};
+`;
+
+/* ============================================
+   卡片面（正面 / 背面共用样式）
+   ============================================ */
+const CardFace = styled.div`
+  background: ${theme.card.bg};
+  border: ${theme.card.border};
+  border-radius: ${theme.card.radius};
+  box-shadow: 0 25px 60px rgba(14, 17, 22, 0.2);
+  padding: 28px 28px 24px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    padding: 24px 20px 20px;
+  }
+`;
+
+const CardFront = styled(CardFace)`
+  /* 正面 */
+`;
+
+const CardBack = styled(CardFace)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform: rotateY(180deg);
+`;
+
+/* ============================================
+   内容区
+   ============================================ */
 const Headline = styled.h1`
   font-size: 24px;
   font-weight: 800;
@@ -148,7 +221,7 @@ const Headline = styled.h1`
 const Subheadline = styled.p`
   font-size: 13px;
   color: #5b6472;
-  margin: 0 0 28px 0;
+  margin: 0 0 24px 0;
   text-align: center;
 `;
 
@@ -159,14 +232,14 @@ const AvatarRow = styled.div`
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-bottom: 28px;
+  gap: 12px;
+  margin-bottom: 24px;
 `;
 
 const AvatarButton = styled.button<{ selected: boolean }>`
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 3px solid ${({ selected }) => (selected ? '#0e1116' : '#e3e8ee')};
   overflow: hidden;
@@ -211,8 +284,8 @@ const AvatarButton = styled.button<{ selected: boolean }>`
 `;
 
 const UploadButton = styled.button`
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 3px dashed #d1d5db;
   background: #f9fafb;
@@ -247,13 +320,13 @@ const Form = styled.form`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 `;
 
 const FieldGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 `;
 
 const FieldLabel = styled.label`
@@ -274,13 +347,13 @@ const FieldLabel = styled.label`
 
 const TextInput = styled.input`
   width: 100%;
-  padding: 14px 18px;
+  padding: 12px 16px;
   font-size: 15px;
   font-weight: 600;
   color: #0e1116;
   background: #f9fafb;
   border: 1px solid #e3e8ee;
-  border-radius: 16px;
+  border-radius: 14px;
   outline: none;
   transition: all 0.15s ease;
   box-sizing: border-box;
@@ -301,13 +374,13 @@ const TextInput = styled.input`
 /* ============================================
    按钮
    ============================================ */
-const SubmitButton = styled.button<{ disabled: boolean }>`
+const SubmitButton = styled.button<{ disabled: boolean; variant?: 'visitor' | 'friend' }>`
   width: 100%;
-  padding: 14px;
+  padding: 13px;
   font-size: 16px;
   font-weight: 800;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -316,7 +389,8 @@ const SubmitButton = styled.button<{ disabled: boolean }>`
   transition: all 0.2s ease;
   font-family: inherit;
 
-  background: ${({ disabled }) => (disabled ? '#f3f4f6' : '#0e1116')};
+  background: ${({ disabled, variant }) =>
+    disabled ? '#f3f4f6' : variant === 'friend' ? '#2e7def' : '#0e1116'};
   color: ${({ disabled }) => (disabled ? '#9ca3af' : '#ffffff')};
 
   ${({ disabled }) =>
@@ -325,7 +399,6 @@ const SubmitButton = styled.button<{ disabled: boolean }>`
       box-shadow: 0 8px 24px rgba(14, 17, 22, 0.2);
 
       &:hover {
-        background: #000000;
         transform: translateY(-2px);
         box-shadow: 0 12px 30px rgba(14, 17, 22, 0.25);
       }
@@ -349,7 +422,7 @@ const SubmitButton = styled.button<{ disabled: boolean }>`
    底部
    ============================================ */
 const Footer = styled.div`
-  margin-top: 24px;
+  margin-top: 20px;
   font-size: 10px;
   color: #9ca3af;
   font-weight: 700;
@@ -389,12 +462,12 @@ const PreviewTitle = styled.h3`
 `;
 
 const PreviewAvatar = styled.div`
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   border: 3px solid #0e1116;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   img {
@@ -446,10 +519,21 @@ interface LoginCardProps {
 }
 
 export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
-  const [username, setUsername] = useState('');
-  const [avatars, setAvatars] = useState(DEFAULT_AVATARS);
-  const [selectedAvatar, setSelectedAvatar] = useState(0);
+  const [isFriend, setIsFriend] = useState(false);
+
+  // Visitor 面状态
+  const [visitorName, setVisitorName] = useState('');
+  const [visitorAvatars, setVisitorAvatars] = useState(DEFAULT_AVATARS);
+  const [visitorAvatar, setVisitorAvatar] = useState(0);
+
+  // Friend 面状态
+  const [friendName, setFriendName] = useState('');
+  const [friendEmail, setFriendEmail] = useState('');
+  const [friendAvatars, setFriendAvatars] = useState(DEFAULT_AVATARS);
+  const [friendAvatar, setFriendAvatar] = useState(0);
+
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<'visitor' | 'friend'>('visitor');
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -461,7 +545,6 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
     };
     document.addEventListener('keydown', handleEsc);
 
-    // 锁定 body 滚动
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -489,16 +572,23 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
 
   const confirmCustomAvatar = () => {
     if (previewImage) {
-      const newId = avatars.length;
-      setAvatars([...avatars, { id: newId, url: previewImage }]);
-      setSelectedAvatar(newId);
+      if (previewTarget === 'visitor') {
+        const newId = visitorAvatars.length;
+        setVisitorAvatars([...visitorAvatars, { id: newId, url: previewImage }]);
+        setVisitorAvatar(newId);
+      } else {
+        const newId = friendAvatars.length;
+        setFriendAvatars([...friendAvatars, { id: newId, url: previewImage }]);
+        setFriendAvatar(newId);
+      }
       setPreviewImage(null);
     }
   };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || loading) return;
+    const name = isFriend ? friendName : visitorName;
+    if (!name || loading) return;
 
     setLoading(true);
     setTimeout(() => {
@@ -510,82 +600,179 @@ export default function LoginCard({ onClose, onSuccess }: LoginCardProps) {
 
   return createPortal(
     <Overlay closing={closing} onClick={handleClose}>
-      <Card onClick={(e) => e.stopPropagation()}>
+      <CardShell onClick={(e) => e.stopPropagation()}>
         <CloseButton onClick={handleClose}>
           <X />
         </CloseButton>
 
-        {/* 上传预览 */}
-        {previewImage && (
-          <PreviewOverlay>
-            <PreviewModal>
-              <PreviewTitle>预览头像</PreviewTitle>
-              <PreviewAvatar>
-                <img src={previewImage} alt="preview" />
-              </PreviewAvatar>
-              <PreviewButtons>
-                <PreviewBtn onClick={() => setPreviewImage(null)}>取消</PreviewBtn>
-                <PreviewBtn primary onClick={confirmCustomAvatar}>确认</PreviewBtn>
-              </PreviewButtons>
-            </PreviewModal>
-          </PreviewOverlay>
-        )}
+        {/* 3D 翻转场景 */}
+        <FlipScene>
+          <FlipInner flipped={isFriend}>
 
-        <SparkleIcon>
-          <svg viewBox="0 0 100 100">
-            <path d="M50 0 Q50 50 100 50 Q50 50 50 100 Q50 50 0 50 Q50 50 50 0 Z" />
-          </svg>
-        </SparkleIcon>
+            {/* ========== 正面：Visitor ========== */}
+            <CardFront>
+              {/* 上传预览 */}
+              {previewImage && previewTarget === 'visitor' && (
+                <PreviewOverlay>
+                  <PreviewModal>
+                    <PreviewTitle>预览头像</PreviewTitle>
+                    <PreviewAvatar>
+                      <img src={previewImage} alt="preview" />
+                    </PreviewAvatar>
+                    <PreviewButtons>
+                      <PreviewBtn onClick={() => setPreviewImage(null)}>取消</PreviewBtn>
+                      <PreviewBtn primary onClick={confirmCustomAvatar}>确认</PreviewBtn>
+                    </PreviewButtons>
+                  </PreviewModal>
+                </PreviewOverlay>
+              )}
 
-        <Headline>欢迎来访！</Headline>
-        <Subheadline>选择您的形象并输入姓名</Subheadline>
+              {/* 切换开关 */}
+              <ToggleHeader>
+                <ModeText active={!isFriend} onClick={() => setIsFriend(false)}>
+                  Visitor
+                </ModeText>
+                <SwitchTrack checked={isFriend} onClick={() => setIsFriend(!isFriend)}>
+                  <SwitchHandle checked={isFriend} />
+                </SwitchTrack>
+                <ModeText active={isFriend} onClick={() => setIsFriend(true)}>
+                  Friend
+                </ModeText>
+              </ToggleHeader>
 
-        {/* 头像选择 */}
-        <AvatarRow>
-          {avatars.map((avatar) => (
-            <AvatarButton
-              key={avatar.id}
-              selected={selectedAvatar === avatar.id}
-              onClick={() => setSelectedAvatar(avatar.id)}
-            >
-              <img src={avatar.url} alt="avatar" />
-            </AvatarButton>
-          ))}
-          <UploadButton onClick={() => fileInputRef.current?.click()}>
-            <Plus />
-          </UploadButton>
-          <HiddenInput
-            type="file"
-            ref={fileInputRef}
-            accept="image/*"
-            onChange={handleFileUpload}
-          />
-        </AvatarRow>
+              <Headline>欢迎来访！</Headline>
+              <Subheadline>选择形象并输入昵称</Subheadline>
 
-        {/* 表单 */}
-        <Form onSubmit={handleLogin}>
-          <FieldGroup>
-            <FieldLabel>
-              <User />
-              用户姓名
-            </FieldLabel>
-            <TextInput
-              type="text"
-              value={username}
-              placeholder="在此输入您的昵称..."
-              onChange={(e) => setUsername(e.target.value)}
-              autoFocus
-            />
-          </FieldGroup>
+              <AvatarRow>
+                {visitorAvatars.map((avatar) => (
+                  <AvatarButton
+                    key={avatar.id}
+                    selected={visitorAvatar === avatar.id}
+                    onClick={() => setVisitorAvatar(avatar.id)}
+                  >
+                    <img src={avatar.url} alt="avatar" />
+                  </AvatarButton>
+                ))}
+                <UploadButton onClick={() => { setPreviewTarget('visitor'); fileInputRef.current?.click(); }}>
+                  <Plus />
+                </UploadButton>
+              </AvatarRow>
 
-          <SubmitButton type="submit" disabled={!username || loading}>
-            <span>{loading ? '同步中...' : '同步身份并登录'}</span>
-            {!loading && <ArrowRight />}
-          </SubmitButton>
-        </Form>
+              <Form onSubmit={handleLogin}>
+                <FieldGroup>
+                  <FieldLabel>
+                    <User />
+                    用户姓名
+                  </FieldLabel>
+                  <TextInput
+                    type="text"
+                    value={visitorName}
+                    placeholder="在此输入您的昵称..."
+                    onChange={(e) => setVisitorName(e.target.value)}
+                  />
+                </FieldGroup>
+                <SubmitButton type="submit" disabled={!visitorName || loading} variant="visitor">
+                  <span>{loading ? '同步中...' : '同步身份并登录'}</span>
+                  {!loading && <ArrowRight />}
+                </SubmitButton>
+              </Form>
 
-        <Footer>专属数字身份</Footer>
-      </Card>
+              <Footer>Visitor Mode</Footer>
+            </CardFront>
+
+            {/* ========== 背面：Friend ========== */}
+            <CardBack>
+              {/* 上传预览 */}
+              {previewImage && previewTarget === 'friend' && (
+                <PreviewOverlay>
+                  <PreviewModal>
+                    <PreviewTitle>预览头像</PreviewTitle>
+                    <PreviewAvatar>
+                      <img src={previewImage} alt="preview" />
+                    </PreviewAvatar>
+                    <PreviewButtons>
+                      <PreviewBtn onClick={() => setPreviewImage(null)}>取消</PreviewBtn>
+                      <PreviewBtn primary onClick={confirmCustomAvatar}>确认</PreviewBtn>
+                    </PreviewButtons>
+                  </PreviewModal>
+                </PreviewOverlay>
+              )}
+
+              {/* 切换开关 */}
+              <ToggleHeader>
+                <ModeText active={!isFriend} onClick={() => setIsFriend(false)}>
+                  Visitor
+                </ModeText>
+                <SwitchTrack checked={isFriend} onClick={() => setIsFriend(!isFriend)}>
+                  <SwitchHandle checked={isFriend} />
+                </SwitchTrack>
+                <ModeText active={isFriend} onClick={() => setIsFriend(true)}>
+                  Friend
+                </ModeText>
+              </ToggleHeader>
+
+              <Headline>成为好友！</Headline>
+              <Subheadline>填写信息加入朋友圈</Subheadline>
+
+              <AvatarRow>
+                {friendAvatars.map((avatar) => (
+                  <AvatarButton
+                    key={avatar.id}
+                    selected={friendAvatar === avatar.id}
+                    onClick={() => setFriendAvatar(avatar.id)}
+                  >
+                    <img src={avatar.url} alt="avatar" />
+                  </AvatarButton>
+                ))}
+                <UploadButton onClick={() => { setPreviewTarget('friend'); fileInputRef.current?.click(); }}>
+                  <Plus />
+                </UploadButton>
+              </AvatarRow>
+
+              <Form onSubmit={handleLogin}>
+                <FieldGroup>
+                  <FieldLabel>
+                    <User />
+                    用户姓名
+                  </FieldLabel>
+                  <TextInput
+                    type="text"
+                    value={friendName}
+                    placeholder="在此输入您的昵称..."
+                    onChange={(e) => setFriendName(e.target.value)}
+                  />
+                </FieldGroup>
+                <FieldGroup>
+                  <FieldLabel>
+                    <Mail />
+                    邮箱地址
+                  </FieldLabel>
+                  <TextInput
+                    type="email"
+                    value={friendEmail}
+                    placeholder="your@email.com"
+                    onChange={(e) => setFriendEmail(e.target.value)}
+                  />
+                </FieldGroup>
+                <SubmitButton type="submit" disabled={!friendName || loading} variant="friend">
+                  <span>{loading ? '同步中...' : '注册并登录'}</span>
+                  {!loading && <ArrowRight />}
+                </SubmitButton>
+              </Form>
+
+              <Footer>Friend Mode</Footer>
+            </CardBack>
+
+          </FlipInner>
+        </FlipScene>
+
+        <HiddenInput
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          onChange={handleFileUpload}
+        />
+      </CardShell>
     </Overlay>,
     document.body
   );
