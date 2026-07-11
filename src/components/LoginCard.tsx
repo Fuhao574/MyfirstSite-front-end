@@ -51,6 +51,13 @@ const DEFAULT_AVATARS = [
 ];
 
 /* ============================================
+   模块级状态持久化（跨组件挂载）
+   ============================================ */
+let codeSentTimestamp: number | null = null;
+let savedFriendEmail = '';
+let savedIsFriend = false;
+
+/* ============================================
    遮罩层
    ============================================ */
 const Overlay = styled.div<{ closing: boolean }>`
@@ -472,6 +479,7 @@ const CodeInput = styled.input`
 
 const SendCodeButton = styled.button<{ disabled: boolean; sent: boolean }>`
   flex-shrink: 0;
+  width: 110px;
   padding: 12px 14px;
   font-size: 13px;
   font-weight: 700;
@@ -483,6 +491,10 @@ const SendCodeButton = styled.button<{ disabled: boolean; sent: boolean }>`
   transition: all 0.15s ease;
   font-family: inherit;
   white-space: nowrap;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     ${({ disabled, sent }) =>
@@ -519,7 +531,7 @@ const Divider = styled.div`
 /* ============================================
    GitHub 登录按钮
    ============================================ */
-const GithubButton = styled.button`
+const GithubButton = styled.button<{ disabled?: boolean }>`
   width: 100%;
   padding: 13px;
   font-size: 15px;
@@ -532,7 +544,8 @@ const GithubButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
   transition: all 0.2s ease;
   font-family: inherit;
 
@@ -542,15 +555,65 @@ const GithubButton = styled.button`
   }
 
   &:hover {
-    background: #0e1116;
-    color: #ffffff;
-    border-color: #0e1116;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(14, 17, 22, 0.15);
+    ${({ disabled }) =>
+      !disabled
+        ? css`
+            background: #0e1116;
+            color: #ffffff;
+            border-color: #0e1116;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(14, 17, 22, 0.15);
+          `
+        : null}
   }
 
   &:active {
-    transform: translateY(0) scale(0.98);
+    ${({ disabled }) => !disabled && 'transform: translateY(0) scale(0.98);'}
+  }
+`;
+
+/* ============================================
+   Toast 提示（Alert 卡片样式）
+   ============================================ */
+const toastIn = keyframes`
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const ToastContainer = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+`;
+
+const ToastMessage = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fef9c3;
+  border-left: 4px solid #eab308;
+  border-radius: 8px;
+  color: #854d0e;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: ${toastIn} 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #ca8a04;
   }
 `;
 
@@ -650,7 +713,9 @@ interface LoginCardProps {
 }
 
 export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProps) {
-  const [isFriend, setIsFriend] = useState(initial?.mode === 'friend');
+  const [isFriend, setIsFriend] = useState(
+    initial?.mode === 'friend' || savedIsFriend
+  );
 
   // Visitor 面状态
   const [visitorName, setVisitorName] = useState(
@@ -669,17 +734,37 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
 
   // Friend 面状态
   const [friendEmail, setFriendEmail] = useState(
-    initial?.mode === 'friend' ? initial.email || '' : ''
+    initial?.mode === 'friend' ? initial.email || savedFriendEmail : savedFriendEmail
   );
   const [friendCode, setFriendCode] = useState('');
-  const [codeSent, setCodeSent] = useState(false);
-  const [codeCooldown, setCodeCooldown] = useState(0);
+  const [codeSent, setCodeSent] = useState(codeSentTimestamp !== null);
+  const [codeCooldown, setCodeCooldown] = useState(() => {
+    if (codeSentTimestamp === null) return 0;
+    const elapsed = Math.floor((Date.now() - codeSentTimestamp) / 1000);
+    return Math.max(0, 60 - elapsed);
+  });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewTarget, setPreviewTarget] = useState<'visitor' | 'friend'>('visitor');
   const [loading, setLoading] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number; msg: string }[]>([]);
   const [closing, setClosing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toastIdRef = useRef(0);
+
+  // 显示提示（3秒后自动消失，支持堆叠）
+  const showToast = (msg: string) => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, msg }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  };
+
+  // 邮箱格式校验：x@x.x
+  const isEmailValid = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
 
   // ESC 关闭 + 锁定背景滚动
   useEffect(() => {
@@ -690,7 +775,6 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.removeEventListener('keydown', handleEsc);
       document.body.style.overflow = originalOverflow;
@@ -698,7 +782,28 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 倒计时计时器（挂载时如果有剩余倒计时则继续）
+  useEffect(() => {
+    if (codeCooldown <= 0) return;
+    const timer = setInterval(() => {
+      if (codeSentTimestamp === null) {
+        setCodeCooldown(0);
+        return;
+      }
+      const elapsed = Math.floor((Date.now() - codeSentTimestamp) / 1000);
+      const remaining = Math.max(0, 60 - elapsed);
+      setCodeCooldown(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleClose = () => {
+    // 保存当前状态（供下次打开时恢复）
+    savedIsFriend = isFriend;
+    savedFriendEmail = friendEmail;
     setClosing(true);
     setTimeout(() => onClose(), 200);
   };
@@ -726,33 +831,29 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
 
   // 发送验证码 + 倒计时
   const handleSendCode = () => {
-    if (!friendEmail || codeCooldown > 0) return;
+    if (!isEmailValid(friendEmail) || codeCooldown > 0) return;
+    codeSentTimestamp = Date.now();
     setCodeSent(true);
     setCodeCooldown(60);
     const timer = setInterval(() => {
-      setCodeCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
+      if (codeSentTimestamp === null) {
+        setCodeCooldown(0);
+        clearInterval(timer);
+        return;
+      }
+      const elapsed = Math.floor((Date.now() - codeSentTimestamp) / 1000);
+      const remaining = Math.max(0, 60 - elapsed);
+      setCodeCooldown(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+      }
     }, 1000);
   };
 
-  // GitHub 登录
+  // GitHub 登录（暂未开放）
   const handleGithubLogin = () => {
     if (loading) return;
-    setLoading(true);
-    setTimeout(() => {
-      setClosing(true);
-      const result: LoginResult = {
-        mode: 'friend',
-        username: 'GitHub User',
-        avatarUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Github',
-      };
-      setTimeout(() => onSuccess(result), 200);
-    }, 1000);
+    showToast('功能暂未开放');
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -760,10 +861,14 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
     if (loading) return;
 
     if (isFriend) {
-      if (!friendEmail || !friendCode) return;
+      if (!isEmailValid(friendEmail) || !friendCode) return;
       setLoading(true);
       setTimeout(() => {
         setClosing(true);
+        // 清除保存的状态
+        savedIsFriend = false;
+        savedFriendEmail = '';
+        codeSentTimestamp = null;
         const result: LoginResult = {
           mode: 'friend',
           username: friendEmail.split('@')[0],
@@ -777,6 +882,10 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
       setLoading(true);
       setTimeout(() => {
         setClosing(true);
+        // 清除保存的状态
+        savedIsFriend = false;
+        savedFriendEmail = '';
+        codeSentTimestamp = null;
         const result: LoginResult = {
           mode: 'visitor',
           username: visitorName,
@@ -788,8 +897,9 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
   };
 
   return createPortal(
-    <Overlay closing={closing} onClick={handleClose}>
-      <CardShell onClick={(e) => e.stopPropagation()}>
+    <>
+      <Overlay closing={closing}>
+        <CardShell>
         {/* 3D 翻转场景 */}
         <FlipScene>
           <FlipInner flipped={isFriend}>
@@ -920,7 +1030,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     />
                     <SendCodeButton
                       type="button"
-                      disabled={!friendEmail}
+                      disabled={!isEmailValid(friendEmail)}
                       sent={codeCooldown > 0}
                       onClick={handleSendCode}
                     >
@@ -928,7 +1038,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     </SendCodeButton>
                   </EmailCodeRow>
                 </FieldGroup>
-                <SubmitButton type="submit" disabled={!friendEmail || !friendCode || loading} variant="friend">
+                <SubmitButton type="submit" disabled={!isEmailValid(friendEmail) || !friendCode || loading} variant="friend">
                   <span>{loading ? '登录中...' : '验证并登录'}</span>
                   {!loading && <ArrowRight />}
                 </SubmitButton>
@@ -936,9 +1046,9 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
 
               <Divider>或</Divider>
 
-              <GithubButton type="button" onClick={handleGithubLogin}>
+              <GithubButton type="button" onClick={handleGithubLogin} disabled={loading}>
                 <Github />
-                <span>{loading ? '登录中...' : '使用 GitHub 登录'}</span>
+                <span>使用 GitHub 登录</span>
               </GithubButton>
 
               <Footer>Friend Mode</Footer>
@@ -953,8 +1063,23 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
           accept="image/*"
           onChange={handleFileUpload}
         />
-      </CardShell>
-    </Overlay>,
+        </CardShell>
+      </Overlay>
+
+      {/* Toast 容器（固定在页面顶部，支持堆叠） */}
+      {toasts.length > 0 && (
+        <ToastContainer>
+          {toasts.map((t) => (
+            <ToastMessage key={t.id}>
+              <svg stroke="currentColor" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              </svg>
+              {t.msg}
+            </ToastMessage>
+          ))}
+        </ToastContainer>
+      )}
+    </>,
     document.body
   );
 }
