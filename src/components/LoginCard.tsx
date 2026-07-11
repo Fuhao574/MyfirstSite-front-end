@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
-import { User, Plus, ArrowRight, X, Mail } from 'lucide-react';
+import { User, Plus, ArrowRight, X, Mail, Github, ShieldCheck } from 'lucide-react';
 
 /* ============================================
    动画
@@ -433,6 +433,128 @@ const Footer = styled.div`
 `;
 
 /* ============================================
+   邮箱+验证码行
+   ============================================ */
+const EmailCodeRow = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const CodeInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0e1116;
+  background: #f9fafb;
+  border: 1px solid #e3e8ee;
+  border-radius: 14px;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+  text-align: center;
+  letter-spacing: 4px;
+
+  &::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  &:focus {
+    background: #ffffff;
+    border-color: #2e7def;
+    box-shadow: 0 0 0 4px rgba(46, 125, 239, 0.1);
+  }
+`;
+
+const SendCodeButton = styled.button<{ disabled: boolean; sent: boolean }>`
+  flex-shrink: 0;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #e3e8ee;
+  border-radius: 14px;
+  background: ${({ sent }) => (sent ? '#f3f4f6' : '#f9fafb')};
+  color: ${({ disabled, sent }) => (sent ? '#9ca3af' : disabled ? '#cbd5e1' : '#2e7def')};
+  cursor: ${({ disabled, sent }) => (disabled || sent ? 'not-allowed' : 'pointer')};
+  transition: all 0.15s ease;
+  font-family: inherit;
+  white-space: nowrap;
+
+  &:hover {
+    ${({ disabled, sent }) =>
+      !disabled && !sent
+        ? css`
+            background: #eff6ff;
+            border-color: #2e7def;
+          `
+        : null}
+  }
+`;
+
+/* ============================================
+   分隔线
+   ============================================ */
+const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 14px;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 600;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e3e8ee;
+  }
+`;
+
+/* ============================================
+   GitHub 登录按钮
+   ============================================ */
+const GithubButton = styled.button`
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1px solid #e3e8ee;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0e1116;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: #0e1116;
+    color: #ffffff;
+    border-color: #0e1116;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(14, 17, 22, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+`;
+
+/* ============================================
    上传预览弹窗
    ============================================ */
 const PreviewOverlay = styled.div`
@@ -546,22 +668,12 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
   );
 
   // Friend 面状态
-  const [friendName, setFriendName] = useState(
-    initial?.mode === 'friend' ? initial.username : ''
-  );
   const [friendEmail, setFriendEmail] = useState(
     initial?.mode === 'friend' ? initial.email || '' : ''
   );
-  const [friendAvatars, setFriendAvatars] = useState(
-    initial?.mode === 'friend' && initial.avatarUrl
-      ? [...DEFAULT_AVATARS, { id: DEFAULT_AVATARS.length, url: initial.avatarUrl }]
-      : DEFAULT_AVATARS
-  );
-  const [friendAvatar, setFriendAvatar] = useState(
-    initial?.mode === 'friend' && initial.avatarUrl
-      ? DEFAULT_AVATARS.length
-      : 0
-  );
+  const [friendCode, setFriendCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [codeCooldown, setCodeCooldown] = useState(0);
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewTarget, setPreviewTarget] = useState<'visitor' | 'friend'>('visitor');
@@ -607,38 +719,72 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
         const newId = visitorAvatars.length;
         setVisitorAvatars([...visitorAvatars, { id: newId, url: previewImage }]);
         setVisitorAvatar(newId);
-      } else {
-        const newId = friendAvatars.length;
-        setFriendAvatars([...friendAvatars, { id: newId, url: previewImage }]);
-        setFriendAvatar(newId);
       }
       setPreviewImage(null);
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = isFriend ? friendName : visitorName;
-    if (!name || loading) return;
+  // 发送验证码 + 倒计时
+  const handleSendCode = () => {
+    if (!friendEmail || codeCooldown > 0) return;
+    setCodeSent(true);
+    setCodeCooldown(60);
+    const timer = setInterval(() => {
+      setCodeCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
+  // GitHub 登录
+  const handleGithubLogin = () => {
+    if (loading) return;
     setLoading(true);
     setTimeout(() => {
-      setLoading(false);
       setClosing(true);
-      const result: LoginResult = isFriend
-        ? {
-            mode: 'friend',
-            username: friendName,
-            avatarUrl: friendAvatars[friendAvatar]?.url || '',
-            email: friendEmail,
-          }
-        : {
-            mode: 'visitor',
-            username: visitorName,
-            avatarUrl: visitorAvatars[visitorAvatar]?.url || '',
-          };
+      const result: LoginResult = {
+        mode: 'friend',
+        username: 'GitHub User',
+        avatarUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Github',
+      };
       setTimeout(() => onSuccess(result), 200);
     }, 1000);
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+
+    if (isFriend) {
+      if (!friendEmail || !friendCode) return;
+      setLoading(true);
+      setTimeout(() => {
+        setClosing(true);
+        const result: LoginResult = {
+          mode: 'friend',
+          username: friendEmail.split('@')[0],
+          avatarUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=' + encodeURIComponent(friendEmail),
+          email: friendEmail,
+        };
+        setTimeout(() => onSuccess(result), 200);
+      }, 1000);
+    } else {
+      if (!visitorName) return;
+      setLoading(true);
+      setTimeout(() => {
+        setClosing(true);
+        const result: LoginResult = {
+          mode: 'visitor',
+          username: visitorName,
+          avatarUrl: visitorAvatars[visitorAvatar]?.url || '',
+        };
+        setTimeout(() => onSuccess(result), 200);
+      }, 1000);
+    }
   };
 
   return createPortal(
@@ -711,6 +857,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     type="text"
                     value={visitorName}
                     placeholder="在此输入您的昵称..."
+                    maxLength={13}
                     onChange={(e) => setVisitorName(e.target.value)}
                   />
                 </FieldGroup>
@@ -729,22 +876,6 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                 <X />
               </CloseButton>
 
-              {/* 上传预览 */}
-              {previewImage && previewTarget === 'friend' && (
-                <PreviewOverlay>
-                  <PreviewModal>
-                    <PreviewTitle>预览头像</PreviewTitle>
-                    <PreviewAvatar>
-                      <img src={previewImage} alt="preview" />
-                    </PreviewAvatar>
-                    <PreviewButtons>
-                      <PreviewBtn onClick={() => setPreviewImage(null)}>取消</PreviewBtn>
-                      <PreviewBtn primary onClick={confirmCustomAvatar}>确认</PreviewBtn>
-                    </PreviewButtons>
-                  </PreviewModal>
-                </PreviewOverlay>
-              )}
-
               {/* 切换开关 */}
               <ToggleHeader>
                 <ModeText active={!isFriend} onClick={() => setIsFriend(false)}>
@@ -758,37 +889,10 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                 </ModeText>
               </ToggleHeader>
 
-              <Headline>成为好友！</Headline>
-              <Subheadline>填写信息加入朋友圈</Subheadline>
-
-              <AvatarRow>
-                {friendAvatars.map((avatar) => (
-                  <AvatarButton
-                    key={avatar.id}
-                    selected={friendAvatar === avatar.id}
-                    onClick={() => setFriendAvatar(avatar.id)}
-                  >
-                    <img src={avatar.url} alt="avatar" />
-                  </AvatarButton>
-                ))}
-                <UploadButton onClick={() => { setPreviewTarget('friend'); fileInputRef.current?.click(); }}>
-                  <Plus />
-                </UploadButton>
-              </AvatarRow>
+              <Headline>好友登录</Headline>
+              <Subheadline>使用邮箱验证码或 GitHub 登录</Subheadline>
 
               <Form onSubmit={handleLogin}>
-                <FieldGroup>
-                  <FieldLabel>
-                    <User />
-                    用户姓名
-                  </FieldLabel>
-                  <TextInput
-                    type="text"
-                    value={friendName}
-                    placeholder="在此输入您的昵称..."
-                    onChange={(e) => setFriendName(e.target.value)}
-                  />
-                </FieldGroup>
                 <FieldGroup>
                   <FieldLabel>
                     <Mail />
@@ -801,11 +905,41 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     onChange={(e) => setFriendEmail(e.target.value)}
                   />
                 </FieldGroup>
-                <SubmitButton type="submit" disabled={!friendName || loading} variant="friend">
-                  <span>{loading ? '同步中...' : '注册并登录'}</span>
+                <FieldGroup>
+                  <FieldLabel>
+                    <ShieldCheck />
+                    验证码
+                  </FieldLabel>
+                  <EmailCodeRow>
+                    <CodeInput
+                      type="text"
+                      value={friendCode}
+                      placeholder="输入验证码"
+                      maxLength={6}
+                      onChange={(e) => setFriendCode(e.target.value.replace(/\D/g, ''))}
+                    />
+                    <SendCodeButton
+                      type="button"
+                      disabled={!friendEmail}
+                      sent={codeCooldown > 0}
+                      onClick={handleSendCode}
+                    >
+                      {codeCooldown > 0 ? `${codeCooldown}s` : codeSent ? '重新发送' : '发送验证码'}
+                    </SendCodeButton>
+                  </EmailCodeRow>
+                </FieldGroup>
+                <SubmitButton type="submit" disabled={!friendEmail || !friendCode || loading} variant="friend">
+                  <span>{loading ? '登录中...' : '验证并登录'}</span>
                   {!loading && <ArrowRight />}
                 </SubmitButton>
               </Form>
+
+              <Divider>或</Divider>
+
+              <GithubButton type="button" onClick={handleGithubLogin}>
+                <Github />
+                <span>{loading ? '登录中...' : '使用 GitHub 登录'}</span>
+              </GithubButton>
 
               <Footer>Friend Mode</Footer>
             </CardBack>

@@ -135,9 +135,13 @@ const SiteTitle = styled.span`
   color: ${theme.colors.textPrimary};
   letter-spacing: -0.5px;
   white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    display: none;
+    font-size: 15px;
+    max-width: 90px;
   }
 `;
 
