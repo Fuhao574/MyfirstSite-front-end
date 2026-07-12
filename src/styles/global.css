@@ -15,6 +15,8 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* 与页面渐变背景的基础色保持一致，避免回弹时露出白色 */
+  background-color: #eef2ff;
 }
 
 body {
@@ -22,6 +24,8 @@ body {
   color: #1A1A2E;
   line-height: 1.6;
   overflow-x: hidden;
+  /* 与页面渐变背景的基础色保持一致 */
+  background-color: #eef2ff;
 }
 
 a {
