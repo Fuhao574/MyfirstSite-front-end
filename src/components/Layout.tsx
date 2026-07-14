@@ -75,9 +75,6 @@ const StickyCard = styled.div`
   position: sticky;
   top: 80px;
   max-height: calc(100vh - 96px);
-  overflow: hidden;
-  /* sticky 底部间距，确保卡片不会贴到视口底部 */
-  margin-bottom: ${theme.spacing.md};
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     position: static;

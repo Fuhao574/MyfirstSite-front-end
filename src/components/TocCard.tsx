@@ -1,7 +1,7 @@
 /**
  * 博客目录卡片（Table of Contents）
  * 参考 fuwari 主题实现：
- * - 固定大小，内部支持滚动
+ * - 卡片高度受外层 StickyCard 限制，列表区域填满剩余空间并内部滚动
  * - 选中标题由一个框（indicator）包裹，框随选中项平滑移动
  * - scroll 事件检测当前章节
  * - 点击跳转 + TOC 自身滚动保持活跃项可见
@@ -18,13 +18,17 @@ const cardEnter = keyframes`
   to   { opacity: 1; transform: translateY(0) scale(1); }
 `;
 
+/* 卡片整体：flex 列布局，高度 100% 填满 StickyCard */
 const TocContainer = styled.div`
   background: ${theme.card.bg};
   border: ${theme.card.border};
   border-radius: ${theme.card.radius};
   box-shadow: ${theme.card.shadow};
-  padding: 20px 0 16px;
   animation: ${cardEnter} 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  overflow: hidden;
 `;
 
 const TocHeader = styled.div`
@@ -34,9 +38,9 @@ const TocHeader = styled.div`
   font-size: 13px;
   font-weight: 700;
   color: ${theme.colors.textPrimary};
-  margin-bottom: 12px;
-  padding: 0 22px 12px;
+  padding: 16px 22px 12px;
   border-bottom: 1px solid #f0f3f7;
+  flex-shrink: 0;
 
   svg {
     width: 16px;
@@ -45,12 +49,12 @@ const TocHeader = styled.div`
   }
 `;
 
-/* TOC 列表容器：固定高度，内部滚动 */
+/* TOC 列表容器：flex: 1 填满剩余空间，内部滚动 */
 const TocList = styled.nav`
   position: relative;
-  max-height: 300px;
+  flex: 1;
   overflow-y: auto;
-  padding: 4px 12px;
+  padding: 8px 12px 12px;
 
   &::-webkit-scrollbar {
     width: 3px;
@@ -102,8 +106,6 @@ const TocItem = styled.button<{ level: number; active: boolean }>`
   transition: color 0.2s ease;
   line-height: 1.4;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-family: inherit;
   position: relative;
   z-index: 1;
@@ -114,6 +116,7 @@ const TocItem = styled.button<{ level: number; active: boolean }>`
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
+    flex: 1;
   }
 
   &:hover {
@@ -235,13 +238,16 @@ export default function TocCard() {
         if (activeEl) {
           const listRect = tocListRef.current.getBoundingClientRect();
           const itemRect = activeEl.getBoundingClientRect();
-          const isVisible = itemRect.top >= listRect.top && itemRect.bottom <= listRect.bottom;
+          const PADDING = 8;
+          const isVisible =
+            itemRect.top >= listRect.top + PADDING &&
+            itemRect.bottom <= listRect.bottom - PADDING;
 
           if (!isVisible) {
             const top =
-              itemRect.bottom > listRect.bottom
-                ? activeEl.offsetTop - tocListRef.current.clientHeight + itemRect.height
-                : activeEl.offsetTop - 10;
+              itemRect.bottom > listRect.bottom - PADDING
+                ? activeEl.offsetTop - tocListRef.current.clientHeight + itemRect.height + PADDING
+                : activeEl.offsetTop - PADDING;
             tocListRef.current.scrollTo({ top, behavior: 'smooth' });
           }
         }
