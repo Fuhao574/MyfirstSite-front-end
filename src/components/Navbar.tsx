@@ -539,7 +539,8 @@ export default function Navbar() {
     setLoginCardOpen(false);
   };
 
-  const avatarSrc = loginResult?.avatarUrl || '/avatar.jpg';
+  const avatarSrc = loginResult?.avatarUrl || 'https://api.dicebear.com/7.x/adventurer/svg?seed=guest&backgroundColor=eef2ff';
+  const displayName = loginResult?.username || '';
 
   return (
     <NavContainer isScrolled={isScrolled}>
@@ -550,7 +551,7 @@ export default function Navbar() {
             alt="avatar"
             className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
           />
-          <SiteTitle>{loginResult?.username || 'Fuhao574'}</SiteTitle>
+          <SiteTitle>{displayName}</SiteTitle>
         </AvatarInner>
         {tooltipOpen && loginResult && (
           <UserTooltip mode={loginResult.mode} username={loginResult.username} />

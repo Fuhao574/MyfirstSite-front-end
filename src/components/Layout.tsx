@@ -1,7 +1,8 @@
 /**
- * 页面布局组件 - 导航栏 + 双栏内容（左侧页面 + 右侧共享侧边栏）
- * 所有页面共享右侧栏：ProfileCard + CalendarCard
- * 左侧内容切换动画：旧内容向下抽离 → 新内容从下方推入
+ * 页面布局组件 - 导航栏 + 内容区域
+ * 主页/博客/项目/归档/友链：双栏（左侧内容 + 右侧共享侧边栏）
+ * 关于页面：全宽（无侧边栏）
+ * 切换页面时：旧内容向下抽离 → 新内容从下方推入
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,7 +28,15 @@ const pageEnter = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
-const LayoutContent = styled.div`
+/* 动画包裹层 — 包裹整个内容区域 */
+const AnimatedWrapper = styled.div<{ phase: 'entering' | 'exiting' }>`
+  width: 100%;
+  animation: ${({ phase }) => (phase === 'exiting' ? pageExit : pageEnter)}
+    0.35s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+`;
+
+/* 双栏布局（含右侧栏） */
+const DualLayout = styled.div`
   width: 100%;
   padding: ${theme.spacing.xl} 40px;
   display: grid;
@@ -46,15 +55,6 @@ const LeftColumn = styled.div`
   flex-direction: column;
   gap: ${theme.spacing.md};
   min-width: 0;
-  overflow: hidden;
-`;
-
-const AnimatedWrapper = styled.div<{ phase: 'entering' | 'exiting' }>`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.md};
-  animation: ${({ phase }) => (phase === 'exiting' ? pageExit : pageEnter)}
-    0.35s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
 `;
 
 const RightColumn = styled.div`
@@ -74,6 +74,11 @@ const CalendarSticky = styled.div`
   }
 `;
 
+/* 全宽布局（关于页面） */
+const FullLayout = styled.div`
+  width: 100%;
+`;
+
 export default function Layout() {
   const location = useLocation();
   const currentOutlet = useOutlet();
@@ -91,7 +96,6 @@ export default function Layout() {
 
   // 退出动画结束后，切换到新内容并播放进入动画
   const handleAnimationEnd = (e: React.AnimationEvent) => {
-    // 只响应 wrapper 自身的动画结束，忽略子元素的冒泡
     if (e.target !== e.currentTarget) return;
     if (phase === 'exiting') {
       setRenderedOutlet(currentOutlet);
@@ -100,23 +104,32 @@ export default function Layout() {
     }
   };
 
+  // 用 committedPath 决定布局（退出阶段保持旧布局，进入阶段用新布局）
+  const showFullLayout = committedPath.current === '/about';
+
   return (
     <>
       <Navbar />
       <PageContainer>
-        <LayoutContent>
-          <LeftColumn>
-            <AnimatedWrapper phase={phase} onAnimationEnd={handleAnimationEnd}>
+        <AnimatedWrapper phase={phase} onAnimationEnd={handleAnimationEnd}>
+          {showFullLayout ? (
+            <FullLayout>
               {renderedOutlet}
-            </AnimatedWrapper>
-          </LeftColumn>
-          <RightColumn>
-            <ProfileCard />
-            <CalendarSticky>
-              <CalendarCard />
-            </CalendarSticky>
-          </RightColumn>
-        </LayoutContent>
+            </FullLayout>
+          ) : (
+            <DualLayout>
+              <LeftColumn>
+                {renderedOutlet}
+              </LeftColumn>
+              <RightColumn>
+                <ProfileCard />
+                <CalendarSticky>
+                  <CalendarCard />
+                </CalendarSticky>
+              </RightColumn>
+            </DualLayout>
+          )}
+        </AnimatedWrapper>
       </PageContainer>
       <BackToTop />
     </>
