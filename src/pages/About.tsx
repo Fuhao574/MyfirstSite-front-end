@@ -1,5 +1,5 @@
 /**
- * 关于页面 - 当前 Hero 内容放在这里
+ * 关于页面 - 全宽布局（不使用共享右侧栏）
  */
 
 import { PageContainer } from './PageContainer';

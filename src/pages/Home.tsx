@@ -1,18 +1,13 @@
 /**
- * 主页 - 组件化布局
- * 左侧：今天吃什么 + 天气 + 占位卡片
- * 右侧：个人介绍（正常滚动）+ 日历（触顶固定）
- * 移动端：自动堆叠为单列
+ * 主页 - 左侧内容
+ * 右侧栏（ProfileCard + CalendarCard）由 Layout 统一提供
  */
 
 import { keyframes } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
-import { PageContainer } from './PageContainer';
 import FoodSlotMachine from '../components/FoodSlotMachine';
 import WeatherCard from '../components/WeatherCard';
-import ProfileCard from '../components/ProfileCard';
-import CalendarCard from '../components/CalendarCard';
 
 const placeholderEnter = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -78,98 +73,50 @@ const PlaceholderCard = styled.div<{ delay?: number }>`
   .skeleton-line:nth-child(3) { width: 70%; }
 `;
 
-const HomeContent = styled.div`
-  width: 100%;
-  padding: ${theme.spacing.xl} 40px;
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: ${theme.spacing.xl};
-  align-items: start;
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr;
-    padding: ${theme.spacing['2xl']} ${theme.spacing.md};
-  }
-`;
-
-const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.md};
-  min-width: 0;
-`;
-
-const RightColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.md};
-  align-self: stretch;
-`;
-
-/* 只有日历卡片触顶固定 */
-const CalendarSticky = styled.div`
-  position: sticky;
-  top: 88px;
-
-  @media (max-width: ${theme.breakpoints.tablet}) {
-    position: static;
-  }
-`;
-
 export default function Home() {
   return (
-    <PageContainer>
-      <HomeContent>
-        <LeftColumn>
-          <FoodSlotMachine />
-          <WeatherCard />
+    <>
+      <FoodSlotMachine />
+      <WeatherCard />
 
-          <PlaceholderCard delay={1}>
-            <h3>最新文章</h3>
-            <p>这里将来会展示最新发布的博客文章列表</p>
-            <div className="skeleton-lines">
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-            </div>
-          </PlaceholderCard>
+      <PlaceholderCard delay={1}>
+        <h3>最新文章</h3>
+        <p>这里将来会展示最新发布的博客文章列表</p>
+        <div className="skeleton-lines">
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+        </div>
+      </PlaceholderCard>
 
-          <PlaceholderCard delay={2}>
-            <h3>热门项目</h3>
-            <p>这里将来会展示 GitHub 热门项目</p>
-            <div className="skeleton-lines">
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-            </div>
-          </PlaceholderCard>
+      <PlaceholderCard delay={2}>
+        <h3>热门项目</h3>
+        <p>这里将来会展示 GitHub 热门项目</p>
+        <div className="skeleton-lines">
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+        </div>
+      </PlaceholderCard>
 
-          <PlaceholderCard delay={3}>
-            <h3>随机一言</h3>
-            <p>「Stay hungry, stay foolish.」 — Steve Jobs</p>
-            <div className="skeleton-lines">
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-            </div>
-          </PlaceholderCard>
+      <PlaceholderCard delay={3}>
+        <h3>随机一言</h3>
+        <p>「Stay hungry, stay foolish.」 — Steve Jobs</p>
+        <div className="skeleton-lines">
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+        </div>
+      </PlaceholderCard>
 
-          <PlaceholderCard delay={4}>
-            <h3>网站统计</h3>
-            <p>总访问量、文章数、运行天数等统计数据</p>
-            <div className="skeleton-lines">
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-              <div className="skeleton-line" />
-            </div>
-          </PlaceholderCard>
-        </LeftColumn>
-        <RightColumn>
-          <ProfileCard />
-          <CalendarSticky>
-            <CalendarCard />
-          </CalendarSticky>
-        </RightColumn>
-      </HomeContent>
-    </PageContainer>
+      <PlaceholderCard delay={4}>
+        <h3>网站统计</h3>
+        <p>总访问量、文章数、运行天数等统计数据</p>
+        <div className="skeleton-lines">
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+          <div className="skeleton-line" />
+        </div>
+      </PlaceholderCard>
+    </>
   );
 }
