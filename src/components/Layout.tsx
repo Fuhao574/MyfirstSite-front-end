@@ -2,7 +2,9 @@
  * 页面布局组件 - 导航栏 + 内容区域
  * 主页/博客/项目/归档/友链：双栏（左侧内容 + 右侧共享侧边栏）
  * 关于页面：全宽（无侧边栏）
- * 切换页面时：旧内容向下抽离 → 新内容从下方推入
+ * 切换动画：
+ *   - 双栏页面之间切换 → 只动画左栏，右栏不动
+ *   - 涉及关于页面 → 整体抽离/推入（右栏出现/消失）
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -28,7 +30,7 @@ const pageEnter = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
-/* 动画包裹层 — 包裹整个内容区域 */
+/* 动画包裹层 */
 const AnimatedWrapper = styled.div<{ phase: 'entering' | 'exiting' }>`
   width: 100%;
   animation: ${({ phase }) => (phase === 'exiting' ? pageExit : pageEnter)}
@@ -77,6 +79,18 @@ const CalendarSticky = styled.div`
 /* 全宽布局（关于页面） */
 const FullLayout = styled.div`
   width: 100%;
+  padding: ${theme.spacing.xl} 40px;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: ${theme.spacing['2xl']} ${theme.spacing.md};
+  }
+`;
+
+/* 右侧栏（静态，不参与左栏切换动画） */
+const StaticSidebar = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.md};
 `;
 
 export default function Layout() {
@@ -107,6 +121,47 @@ export default function Layout() {
   // 用 committedPath 决定布局（退出阶段保持旧布局，进入阶段用新布局）
   const showFullLayout = committedPath.current === '/about';
 
+  // 判断是否是双栏页面之间的切换（新旧路径都不是 /about）
+  const oldIsAbout = committedPath.current === '/about';
+  const newIsAbout = location.pathname === '/about';
+  const animateLeftOnly = !oldIsAbout && !newIsAbout;
+
+  // 右侧栏内容（静态，不参与动画）
+  const sidebar = (
+    <RightColumn>
+      <ProfileCard />
+      <CalendarSticky>
+        <CalendarCard />
+      </CalendarSticky>
+    </RightColumn>
+  );
+
+  if (animateLeftOnly) {
+    // 双栏页面之间切换：只动画左栏，右栏不动
+    return (
+      <>
+        <Navbar />
+        <PageContainer>
+          <DualLayout>
+            <LeftColumn>
+              <AnimatedWrapper phase={phase} onAnimationEnd={handleAnimationEnd}>
+                {renderedOutlet}
+              </AnimatedWrapper>
+            </LeftColumn>
+            <StaticSidebar>
+              <ProfileCard />
+              <CalendarSticky>
+                <CalendarCard />
+              </CalendarSticky>
+            </StaticSidebar>
+          </DualLayout>
+        </PageContainer>
+        <BackToTop />
+      </>
+    );
+  }
+
+  // 涉及关于页面：整体动画
   return (
     <>
       <Navbar />
@@ -121,12 +176,7 @@ export default function Layout() {
               <LeftColumn>
                 {renderedOutlet}
               </LeftColumn>
-              <RightColumn>
-                <ProfileCard />
-                <CalendarSticky>
-                  <CalendarCard />
-                </CalendarSticky>
-              </RightColumn>
+              {sidebar}
             </DualLayout>
           )}
         </AnimatedWrapper>

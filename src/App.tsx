@@ -26,6 +26,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:postId" element={<Blog />} />
             <Route path="/project" element={<Projects />} />
             <Route path="/archive" element={<Archive />} />
             <Route path="/friends" element={<Friends />} />

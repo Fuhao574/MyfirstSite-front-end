@@ -1,13 +1,13 @@
 /**
  * 博客 - 左侧内容
  * 右侧栏由 Layout 统一提供
- * 支持文章列表 + 文章详情
+ * 支持文章列表 + 文章详情（通过路由 /blog/:postId）
  */
 
-import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
-import { blogPosts, type BlogPost } from '../data/blogData';
+import { blogPosts } from '../data/blogData';
 
 /* ============================================
    文章卡片
@@ -298,38 +298,54 @@ function renderMarkdown(content: string): string {
    组件
    ============================================ */
 export default function Blog() {
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const { postId } = useParams<{ postId: string }>();
+  const navigate = useNavigate();
 
-  if (selectedPost) {
+  // 有 postId → 文章详情
+  if (postId) {
+    const post = blogPosts.find(p => p.id === postId);
+
+    if (!post) {
+      return (
+        <ArticleDetail>
+          <ArticleBody>
+            <ArticleTitle>文章不存在</ArticleTitle>
+            <p>找不到该博客文章。</p>
+          </ArticleBody>
+        </ArticleDetail>
+      );
+    }
+
     return (
       <>
-        <BackButton onClick={() => setSelectedPost(null)}>
+        <BackButton onClick={() => navigate('/blog')}>
           ← 返回列表
         </BackButton>
         <ArticleDetail>
-          {selectedPost.cover && (
+          {post.cover && (
             <ArticleCover>
-              <img src={selectedPost.cover} alt={selectedPost.title} />
+              <img src={post.cover} alt={post.title} />
             </ArticleCover>
           )}
           <ArticleBody>
             <ArticleMeta>
-              <BlogCategory>{selectedPost.category}</BlogCategory>
-              <span>{selectedPost.date}</span>
-              <span>· {selectedPost.readTime} 分钟阅读</span>
+              <BlogCategory>{post.category}</BlogCategory>
+              <span>{post.date}</span>
+              <span>· {post.readTime} 分钟阅读</span>
             </ArticleMeta>
-            <ArticleTitle>{selectedPost.title}</ArticleTitle>
-            <ArticleContent dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedPost.content) }} />
+            <ArticleTitle>{post.title}</ArticleTitle>
+            <ArticleContent dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }} />
           </ArticleBody>
         </ArticleDetail>
       </>
     );
   }
 
+  // 无 postId → 文章列表
   return (
     <>
       {blogPosts.map((post) => (
-        <BlogCard key={post.id} onClick={() => setSelectedPost(post)}>
+        <BlogCard key={post.id} onClick={() => navigate(`/blog/${post.id}`)}>
           {post.cover && (
             <BlogCover>
               <img src={post.cover} alt={post.title} />
