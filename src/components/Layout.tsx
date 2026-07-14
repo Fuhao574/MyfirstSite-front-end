@@ -17,6 +17,7 @@ import Navbar from '../components/Navbar';
 import BackToTop from '../components/BackToTop';
 import ProfileCard from '../components/ProfileCard';
 import CalendarCard from '../components/CalendarCard';
+import TocCard from '../components/TocCard';
 
 /* 旧内容向下抽离 */
 const pageExit = keyframes`
@@ -59,20 +60,28 @@ const LeftColumn = styled.div`
   min-width: 0;
 `;
 
+/* 右侧栏：拉伸到和左栏一样高，给 sticky 足够空间 */
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.md};
+  /* 关键：让右栏高度跟随左栏（文章），sticky 才有足够空间 */
   align-self: stretch;
+  min-height: 100%;
 `;
 
-/* 只有日历卡片触顶固定 */
-const CalendarSticky = styled.div`
+/* 第二个卡片 sticky 置顶（ProfileCard 正常滚动） */
+const StickyCard = styled.div`
   position: sticky;
-  top: 88px;
+  top: 80px;
+  max-height: calc(100vh - 96px);
+  overflow: hidden;
+  /* sticky 底部间距，确保卡片不会贴到视口底部 */
+  margin-bottom: ${theme.spacing.md};
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     position: static;
+    max-height: none;
   }
 `;
 
@@ -91,6 +100,8 @@ const StaticSidebar = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.md};
+  align-self: stretch;
+  min-height: 100%;
 `;
 
 export default function Layout() {
@@ -101,10 +112,11 @@ export default function Layout() {
   const [renderedOutlet, setRenderedOutlet] = useState(currentOutlet);
   const committedPath = useRef(location.pathname);
 
-  // 路由变化时启动退出动画
+  // 路由变化时启动退出动画 + 滚动到顶部
   useEffect(() => {
     if (location.pathname !== committedPath.current) {
       setPhase('exiting');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [location.pathname]);
 
@@ -119,22 +131,18 @@ export default function Layout() {
   };
 
   // 用 committedPath 决定布局（退出阶段保持旧布局，进入阶段用新布局）
-  const showFullLayout = committedPath.current === '/about';
+  const committedPathStr = committedPath.current;
+  const showFullLayout = committedPathStr === '/about';
+
+  // 博客详情页：路径匹配 /blog/:postId（但不匹配 /blog 本身）
+  const isBlogDetail = /^\/blog\/[^/]+/.test(committedPathStr);
 
   // 判断是否是双栏页面之间的切换（新旧路径都不是 /about）
-  const oldIsAbout = committedPath.current === '/about';
+  const oldIsAbout = committedPathStr === '/about';
   const newIsAbout = location.pathname === '/about';
   const animateLeftOnly = !oldIsAbout && !newIsAbout;
 
-  // 右侧栏内容（静态，不参与动画）
-  const sidebar = (
-    <RightColumn>
-      <ProfileCard />
-      <CalendarSticky>
-        <CalendarCard />
-      </CalendarSticky>
-    </RightColumn>
-  );
+  // 右侧栏内容：博客详情页显示 TocCard（替代 CalendarCard），其他页面显示 CalendarCard
 
   if (animateLeftOnly) {
     // 双栏页面之间切换：只动画左栏，右栏不动
@@ -149,10 +157,21 @@ export default function Layout() {
               </AnimatedWrapper>
             </LeftColumn>
             <StaticSidebar>
-              <ProfileCard />
-              <CalendarSticky>
-                <CalendarCard />
-              </CalendarSticky>
+              {isBlogDetail ? (
+                <>
+                  <ProfileCard />
+                  <StickyCard>
+                    <TocCard />
+                  </StickyCard>
+                </>
+              ) : (
+                <>
+                  <ProfileCard />
+                  <StickyCard>
+                    <CalendarCard />
+                  </StickyCard>
+                </>
+              )}
             </StaticSidebar>
           </DualLayout>
         </PageContainer>
@@ -176,7 +195,21 @@ export default function Layout() {
               <LeftColumn>
                 {renderedOutlet}
               </LeftColumn>
-              {sidebar}
+              {isBlogDetail ? (
+                <RightColumn>
+                  <ProfileCard />
+                  <StickyCard>
+                    <TocCard />
+                  </StickyCard>
+                </RightColumn>
+              ) : (
+                <RightColumn>
+                  <ProfileCard />
+                  <StickyCard>
+                    <CalendarCard />
+                  </StickyCard>
+                </RightColumn>
+              )}
             </DualLayout>
           )}
         </AnimatedWrapper>

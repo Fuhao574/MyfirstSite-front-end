@@ -334,7 +334,7 @@ export default function Blog() {
               <span>· {post.readTime} 分钟阅读</span>
             </ArticleMeta>
             <ArticleTitle>{post.title}</ArticleTitle>
-            <ArticleContent dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }} />
+            <ArticleContent className="article-content" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }} />
           </ArticleBody>
         </ArticleDetail>
       </>

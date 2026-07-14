@@ -487,8 +487,10 @@ export default function Navbar() {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const avatarAreaRef = useRef<HTMLDivElement>(null);
 
-  // 根据当前路由判断激活的导航项
-  const activeNav = navItems.find(item => item.href === location.pathname)?.id || 'home';
+  // 根据当前路由判断激活的导航项（支持子路由，如 /blog/:postId 高亮"博客"）
+  const activeNav = navItems.find(item =>
+    location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+  )?.id || 'home';
 
   useEffect(() => {
     const timer = setTimeout(() => setInitial(false), 500);
