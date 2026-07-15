@@ -889,27 +889,41 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
     showToast('功能暂未开放', 'warning');
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     if (isFriend) {
       if (!isEmailValid(friendEmail) || !friendCode) return;
       setLoading(true);
-      setTimeout(() => {
-        setClosing(true);
-        // 清除保存的状态
-        savedIsFriend = false;
-        savedFriendEmail = '';
-        codeSentTimestamp = null;
-        const result: LoginResult = {
-          mode: 'friend',
-          username: friendEmail.split('@')[0],
-          avatarUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=' + encodeURIComponent(friendEmail),
-          email: friendEmail,
-        };
-        setTimeout(() => onSuccess(result), 200);
-      }, 1000);
+      try {
+        const res = await fetch('/api/login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: friendEmail, code: friendCode }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setClosing(true);
+          // 清除保存的状态
+          savedIsFriend = false;
+          savedFriendEmail = '';
+          codeSentTimestamp = null;
+          const result: LoginResult = {
+            mode: 'friend',
+            username: data.data.nickname,
+            avatarUrl: data.data.avatar_url,
+            email: friendEmail,
+          };
+          setTimeout(() => onSuccess(result), 200);
+        } else {
+          showToast(data.message || '登录失败，请重试', 'error');
+        }
+      } catch {
+        showToast('网络错误，请检查连接', 'error');
+      } finally {
+        setLoading(false);
+      }
     } else {
       if (!visitorName) return;
       setLoading(true);
