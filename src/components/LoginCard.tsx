@@ -830,24 +830,43 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
   };
 
   // 发送验证码 + 倒计时
-  const handleSendCode = () => {
-    if (!isEmailValid(friendEmail) || codeCooldown > 0) return;
-    codeSentTimestamp = Date.now();
-    setCodeSent(true);
-    setCodeCooldown(60);
-    const timer = setInterval(() => {
-      if (codeSentTimestamp === null) {
-        setCodeCooldown(0);
-        clearInterval(timer);
-        return;
+  const [codeSending, setCodeSending] = useState(false);
+  const handleSendCode = async () => {
+    if (!isEmailValid(friendEmail) || codeCooldown > 0 || codeSending) return;
+    setCodeSending(true);
+    try {
+      const res = await fetch('/api/send-code.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: friendEmail }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        codeSentTimestamp = Date.now();
+        setCodeSent(true);
+        setCodeCooldown(60);
+        showToast('验证码已发送，请查收邮箱');
+        const timer = setInterval(() => {
+          if (codeSentTimestamp === null) {
+            setCodeCooldown(0);
+            clearInterval(timer);
+            return;
+          }
+          const elapsed = Math.floor((Date.now() - codeSentTimestamp) / 1000);
+          const remaining = Math.max(0, 60 - elapsed);
+          setCodeCooldown(remaining);
+          if (remaining <= 0) {
+            clearInterval(timer);
+          }
+        }, 1000);
+      } else {
+        showToast(data.message || '发送失败，请重试');
       }
-      const elapsed = Math.floor((Date.now() - codeSentTimestamp) / 1000);
-      const remaining = Math.max(0, 60 - elapsed);
-      setCodeCooldown(remaining);
-      if (remaining <= 0) {
-        clearInterval(timer);
-      }
-    }, 1000);
+    } catch {
+      showToast('网络错误，请检查连接');
+    } finally {
+      setCodeSending(false);
+    }
   };
 
   // GitHub 登录（暂未开放）
@@ -1030,11 +1049,11 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     />
                     <SendCodeButton
                       type="button"
-                      disabled={!isEmailValid(friendEmail)}
+                      disabled={!isEmailValid(friendEmail) || codeSending}
                       sent={codeCooldown > 0}
                       onClick={handleSendCode}
                     >
-                      {codeCooldown > 0 ? `${codeCooldown}s` : codeSent ? '重新发送' : '发送验证码'}
+                      {codeSending ? '发送中...' : codeCooldown > 0 ? `${codeCooldown}s` : codeSent ? '重新发送' : '发送验证码'}
                     </SendCodeButton>
                   </EmailCodeRow>
                 </FieldGroup>

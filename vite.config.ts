@@ -11,9 +11,16 @@ export default defineConfig({
     })
   ],
   server: {
-    historyApiFallback: true
+    historyApiFallback: true,
+    // 开发环境：将 /api 代理到 PHP 服务器
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
-    historyApiFallback: true
-  }
+    historyApiFallback: true,
+  },
 })
