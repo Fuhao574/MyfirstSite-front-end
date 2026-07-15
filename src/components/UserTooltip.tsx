@@ -90,7 +90,7 @@ export default function UserTooltip({ mode }: UserTooltipProps) {
 
   return (
     <TooltipWrapper>
-      <TipTitle>再次点击头像以重新登录</TipTitle>
+      <TipTitle>再次点击头像进入个人中心哦~</TipTitle>
       <TipRow>
         <TipLabel color={modeColor}>{modeText}</TipLabel>
       </TipRow>

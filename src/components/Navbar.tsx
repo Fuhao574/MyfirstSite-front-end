@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -16,6 +17,57 @@ import {
 } from 'lucide-react';
 import LoginCard, { type LoginResult } from './LoginCard';
 import UserTooltip from './UserTooltip';
+import ProfileCenter from './ProfileCenter';
+
+/* Navbar Toast 样式 */
+const navToastIn = keyframes`
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const NAV_TOAST_STYLES: Record<string, { bg: string; border: string; color: string; icon: string }> = {
+  success: { bg: '#dcfce7', border: '#22c55e', color: '#166534', icon: '#16a34a' },
+  info:    { bg: '#dbeafe', border: '#3b82f6', color: '#1e40af', icon: '#2563eb' },
+  warning: { bg: '#fef9c3', border: '#eab308', color: '#854d0e', icon: '#ca8a04' },
+  error:   { bg: '#fee2e2', border: '#ef4444', color: '#991b1b', icon: '#dc2626' },
+};
+
+const NavToastContainer = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+`;
+
+const NavToastMessage = styled.div<{ type: string }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: ${({ type }) => NAV_TOAST_STYLES[type]?.bg || NAV_TOAST_STYLES.info.bg};
+  border-left: 4px solid ${({ type }) => NAV_TOAST_STYLES[type]?.border || NAV_TOAST_STYLES.info.border};
+  border-radius: 8px;
+  color: ${({ type }) => NAV_TOAST_STYLES[type]?.color || NAV_TOAST_STYLES.info.color};
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: ${navToastIn} 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: ${({ type }) => NAV_TOAST_STYLES[type]?.icon || NAV_TOAST_STYLES.info.icon};
+  }
+`;
 
 /* 动画 */
 const scaleIn = keyframes`
@@ -485,7 +537,19 @@ export default function Navbar() {
   const [loginCardOpen, setLoginCardOpen] = useState(false);
   const [loginResult, setLoginResult] = useState<LoginResult | null>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [profileCenterOpen, setProfileCenterOpen] = useState(false);
+  const [navToasts, setNavToasts] = useState<{ id: number; msg: string; type: 'success' | 'info' | 'warning' | 'error' }[]>([]);
+  const navToastIdRef = useRef(0);
   const avatarAreaRef = useRef<HTMLDivElement>(null);
+
+  // Navbar 级 Toast（ProfileCenter 关闭后继续显示）
+  const showNavToast = (msg: string, type: 'success' | 'info' | 'warning' | 'error' = 'info') => {
+    const id = ++navToastIdRef.current;
+    setNavToasts((prev) => [...prev, { id, msg, type }]);
+    setTimeout(() => {
+      setNavToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  };
 
   // 根据当前路由判断激活的导航项（支持子路由，如 /blog/:postId 高亮"博客"）
   const activeNav = navItems.find(item =>
@@ -526,10 +590,13 @@ export default function Navbar() {
     if (!loginResult) {
       // 未登录 → 打开登录卡片
       setLoginCardOpen(true);
+    } else if (profileCenterOpen) {
+      // 个人中心已打开 → 不做额外操作
+      return;
     } else if (tooltipOpen) {
-      // tooltip 可见 → 打开登录卡片 + 关闭 tooltip
+      // tooltip 可见 → 关闭 tooltip，打开个人中心
       setTooltipOpen(false);
-      setLoginCardOpen(true);
+      setProfileCenterOpen(true);
     } else {
       // 已登录但 tooltip 不可见 → 显示 tooltip
       setTooltipOpen(true);
@@ -539,6 +606,16 @@ export default function Navbar() {
   const handleLoginSuccess = (result: LoginResult) => {
     setLoginResult(result);
     setLoginCardOpen(false);
+  };
+
+  const handleProfileUpdate = (result: LoginResult) => {
+    setLoginResult(result);
+  };
+
+  const handleLogout = () => {
+    setLoginResult(null);
+    setProfileCenterOpen(false);
+    setTooltipOpen(false);
   };
 
   const avatarSrc = loginResult?.avatarUrl || 'https://api.dicebear.com/7.x/adventurer/svg?seed=guest&backgroundColor=eef2ff';
@@ -615,6 +692,31 @@ export default function Navbar() {
           onSuccess={handleLoginSuccess}
           initial={loginResult}
         />
+      )}
+
+      {profileCenterOpen && loginResult && (
+        <ProfileCenter
+          loginResult={loginResult}
+          onClose={() => setProfileCenterOpen(false)}
+          onUpdate={handleProfileUpdate}
+          onLogout={handleLogout}
+          onToast={showNavToast}
+        />
+      )}
+
+      {/* Navbar 级 Toast（ProfileCenter 关闭后继续显示） */}
+      {navToasts.length > 0 && createPortal(
+        <NavToastContainer>
+          {navToasts.map((t) => (
+            <NavToastMessage key={t.id} type={t.type}>
+              <svg stroke="currentColor" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              </svg>
+              {t.msg}
+            </NavToastMessage>
+          ))}
+        </NavToastContainer>,
+        document.body
       )}
     </NavContainer>
   );
