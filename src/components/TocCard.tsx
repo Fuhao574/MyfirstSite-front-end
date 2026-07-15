@@ -218,11 +218,12 @@ export default function TocCard() {
 
       const newActiveId = headings[activeIndex].id;
 
-      // 点击跳转锁定：在目标标题到达顶部之前，不更新 activeId
+      // 点击跳转锁定：当计算出的活跃标题等于目标时才释放锁
+      // 这对向上和向下滚动都有效：
+      //   向下：目标越过 NAVBAR_OFFSET → activeIndex 变为目标 → 释放
+      //   向上：下方标题落回 NAVBAR_OFFSET 之下 → activeIndex 变为目标 → 释放
       if (anchorNavTarget.current) {
-        const targetEl = document.getElementById(anchorNavTarget.current);
-        if (targetEl && targetEl.getBoundingClientRect().top <= NAVBAR_OFFSET) {
-          // 目标已越过导航栏线，解除锁定
+        if (newActiveId === anchorNavTarget.current) {
           anchorNavTarget.current = null;
         } else {
           // 锁定期间不做任何更新，避免 indicator 跳回旧标题
