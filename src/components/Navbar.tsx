@@ -633,7 +633,7 @@ export default function Navbar() {
           <SiteTitle>{displayName}</SiteTitle>
         </AvatarInner>
         {tooltipOpen && loginResult && (
-          <UserTooltip mode={loginResult.mode} username={loginResult.username} />
+          <UserTooltip mode={loginResult.mode} username={loginResult.username || '未设置'} />
         )}
       </AvatarArea>
 

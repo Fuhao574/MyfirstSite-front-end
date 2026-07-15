@@ -715,8 +715,8 @@ const PreviewBtn = styled.button<{ primary?: boolean }>`
    ============================================ */
 export interface LoginResult {
   mode: 'visitor' | 'friend';
-  username: string;
-  avatarUrl: string;
+  username?: string;
+  avatarUrl?: string;
   email?: string;
 }
 

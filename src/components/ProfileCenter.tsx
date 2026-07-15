@@ -364,8 +364,8 @@ export default function ProfileCenter({
   onLogout,
   onToast,
 }: ProfileCenterProps) {
-  const [nickname, setNickname] = useState(loginResult.username);
-  const [avatarUrl, setAvatarUrl] = useState(loginResult.avatarUrl);
+  const [nickname, setNickname] = useState(loginResult.username || '');
+  const [avatarUrl, setAvatarUrl] = useState(loginResult.avatarUrl || '');
   const [email] = useState(loginResult.email || '');
   const [newEmail, setNewEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');
@@ -508,7 +508,29 @@ export default function ProfileCenter({
             {/* 头像 */}
             <AvatarSection>
               <AvatarPreview>
-                <img src={avatarUrl} alt="avatar" />
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="avatar"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div
+                  className={avatarUrl ? 'hidden' : ''}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9ca3af',
+                  }}
+                >
+                  <User size={32} />
+                </div>
                 <AvatarUploadBtn>
                   <Camera />
                   <input
