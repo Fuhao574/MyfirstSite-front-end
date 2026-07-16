@@ -23,6 +23,31 @@ import BackToTop from '../components/BackToTop';
 import ProfileCard from '../components/ProfileCard';
 import CalendarCard from '../components/CalendarCard';
 import TocCard from '../components/TocCard';
+import { blogPosts } from '../data/blogData';
+
+/* 页面标题映射 */
+const pageTitle = (pathname: string): string => {
+  // 首页
+  if (pathname === '/') return 'Fuhao574 - 这个世界不缺大人';
+  // 博客详情：直接显示文章标题
+  const blogMatch = pathname.match(/^\/blog\/([^/]+)/);
+  if (blogMatch) {
+    const post = blogPosts.find(p => p.id === blogMatch[1]);
+    if (post) return post.title;
+  }
+  // 其他标签页
+  const nameMap: Record<string, string> = {
+    '/blog': '博客',
+    '/project': '项目',
+    '/archive': '归档',
+    '/friends': '友链',
+    '/about': '关于',
+  };
+  const name = nameMap[pathname];
+  if (name) return `${name} - Fuhao574`;
+  // 兜底
+  return 'Fuhao574';
+};
 
 /* 旧内容向下抽离 */
 const pageExit = keyframes`
@@ -138,6 +163,11 @@ export default function Layout() {
     if (location.pathname !== committedPath.current) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }, [location.pathname]);
+
+  // 根据路由更新浏览器标签页标题
+  useEffect(() => {
+    document.title = pageTitle(location.pathname);
   }, [location.pathname]);
 
   // 退出动画结束后，切换到新内容并播放进入动画
