@@ -20,11 +20,6 @@ const pulseGlow = keyframes`
   50%      { opacity: 0.45; filter: blur(20px); }
 `;
 
-const shimmer = keyframes`
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-`;
-
 /* ============================================
    滚动浮现容器
    ============================================ */
@@ -51,24 +46,14 @@ function ScrollReveal({ children, className }: { children: React.ReactNode; clas
   );
 }
 
-/* Hero 容器 */
+/* Hero 容器 - 背景透明，融入 PageContainer 的渐变背景 */
 const HeroSection = styled.section`
   position: relative;
-  padding: 48px ${theme.spacing.xl} ${theme.spacing['4xl']};
+  padding: 48px 0 ${theme.spacing['4xl']};
   overflow: hidden;
 
-  background: linear-gradient(
-    135deg,
-    #eef2ff 0%,
-    #f5f7fa 30%,
-    #f5f3ff 60%,
-    #eef2ff 100%
-  );
-  background-size: 200% 200%;
-  animation: ${shimmer} 15s ease-in-out infinite alternate;
-
   @media (max-width: ${theme.breakpoints.tablet}) {
-    padding: 36px ${theme.spacing.md} ${theme.spacing['2xl']};
+    padding: 36px 0 ${theme.spacing['2xl']};
   }
 `;
 
