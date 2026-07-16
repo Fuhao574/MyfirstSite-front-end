@@ -10,6 +10,7 @@ import { keyframes, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { theme } from '../styles/theme';
 import { User, Plus, ArrowRight, X, Mail, Github, ShieldCheck } from 'lucide-react';
+import { NotificationContainer, NotificationItem, type ToastType } from './Toast';
 
 /* ============================================
    动画
@@ -573,65 +574,6 @@ const GithubButton = styled.button<{ disabled?: boolean }>`
 `;
 
 /* ============================================
-   Toast 提示（Alert 卡片样式 — 四种类型）
-   ============================================ */
-type ToastType = 'success' | 'info' | 'warning' | 'error';
-
-const toastIn = keyframes`
-  from { opacity: 0; transform: translateY(-100%); }
-  to   { opacity: 1; transform: translateY(0); }
-`;
-
-const ToastContainer = styled.div`
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  pointer-events: none;
-`;
-
-const TOAST_STYLES: Record<ToastType, { bg: string; border: string; color: string; icon: string }> = {
-  success: { bg: '#dcfce7', border: '#22c55e', color: '#166534', icon: '#16a34a' },
-  info:    { bg: '#dbeafe', border: '#3b82f6', color: '#1e40af', icon: '#2563eb' },
-  warning: { bg: '#fef9c3', border: '#eab308', color: '#854d0e', icon: '#ca8a04' },
-  error:   { bg: '#fee2e2', border: '#ef4444', color: '#991b1b', icon: '#dc2626' },
-};
-
-const ToastMessage = styled.div<{ type: ToastType }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: ${({ type }) => TOAST_STYLES[type].bg};
-  border-left: 4px solid ${({ type }) => TOAST_STYLES[type].border};
-  border-radius: 8px;
-  color: ${({ type }) => TOAST_STYLES[type].color};
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  animation: ${toastIn} 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, background 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    color: ${({ type }) => TOAST_STYLES[type].icon};
-  }
-`;
-
-/* ============================================
    上传预览弹窗
    ============================================ */
 const PreviewOverlay = styled.div`
@@ -770,9 +712,6 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
   const showToast = (msg: string, type: ToastType = 'info') => {
     const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, msg, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3000);
   };
 
   // 邮箱格式校验：x@x.x
@@ -1115,16 +1054,17 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
 
       {/* Toast 容器（固定在页面顶部，支持堆叠） */}
       {toasts.length > 0 && (
-        <ToastContainer>
+        <NotificationContainer>
           {toasts.map((t) => (
-            <ToastMessage key={t.id} type={t.type}>
-              <svg stroke="currentColor" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-              </svg>
-              {t.msg}
-            </ToastMessage>
+            <NotificationItem
+              key={t.id}
+              type={t.type}
+              message={t.msg}
+              duration={3000}
+              onClose={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
+            />
           ))}
-        </ToastContainer>
+        </NotificationContainer>
       )}
     </>,
     document.body
