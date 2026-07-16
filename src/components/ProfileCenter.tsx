@@ -563,7 +563,11 @@ export default function ProfileCenter({
               </FieldLabel>
               <FieldInput
                 value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                onChange={(e) => {
+                  // Visitor 模式不允许昵称含有空格
+                  const val = isFriend ? e.target.value : e.target.value.replace(/\s/g, '');
+                  setNickname(val);
+                }}
                 placeholder="输入你的昵称"
                 maxLength={20}
               />
@@ -589,7 +593,7 @@ export default function ProfileCenter({
                   <FieldRow>
                     <FieldInput
                       value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
+                      onChange={(e) => setNewEmail(e.target.value.replace(/\s/g, ''))}
                       placeholder="输入新邮箱地址"
                     />
                     <SendCodeBtn
@@ -609,7 +613,7 @@ export default function ProfileCenter({
                     </FieldLabel>
                     <FieldInput
                       value={emailCode}
-                      onChange={(e) => setEmailCode(e.target.value)}
+                      onChange={(e) => setEmailCode(e.target.value.replace(/\s/g, ''))}
                       placeholder="输入验证码"
                       maxLength={6}
                     />

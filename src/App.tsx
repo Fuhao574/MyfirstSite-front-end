@@ -5,6 +5,7 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import styled from '@emotion/styled';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -19,6 +20,47 @@ const AppContainer = styled.div`
 `;
 
 function App() {
+  // 全局禁止所有 input/textarea 输入空格
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === ' ' &&
+        (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const target = e.target;
+      if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) return;
+      const pastedText = e.clipboardData?.getData('text') || '';
+      if (/\s/.test(pastedText)) {
+        e.preventDefault();
+        const cleaned = pastedText.replace(/\s/g, '');
+        const start = target.selectionStart || 0;
+        const end = target.selectionEnd || 0;
+        const newValue = target.value.slice(0, start) + cleaned + target.value.slice(end);
+        const setter = Object.getOwnPropertyDescriptor(
+          target instanceof HTMLTextAreaElement
+            ? window.HTMLTextAreaElement.prototype
+            : window.HTMLInputElement.prototype,
+          'value'
+        )?.set;
+        setter?.call(target, newValue);
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        const cursorPos = start + cleaned.length;
+        target.setSelectionRange(cursorPos, cursorPos);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('paste', handlePaste);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, []);
   return (
     <AppContainer>
       <BrowserRouter>

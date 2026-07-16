@@ -1015,7 +1015,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     value={visitorName}
                     placeholder="在此输入您的昵称..."
                     maxLength={13}
-                    onChange={(e) => setVisitorName(e.target.value)}
+                    onChange={(e) => setVisitorName(e.target.value.replace(/\s/g, ''))}
                   />
                 </FieldGroup>
                 <SubmitButton type="submit" disabled={!visitorName || loading} variant="visitor">
@@ -1059,7 +1059,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     type="email"
                     value={friendEmail}
                     placeholder="your@email.com"
-                    onChange={(e) => setFriendEmail(e.target.value)}
+                    onChange={(e) => setFriendEmail(e.target.value.replace(/\s/g, ''))}
                   />
                 </FieldGroup>
                 <FieldGroup>

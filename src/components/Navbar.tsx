@@ -162,6 +162,32 @@ const LogoAvatar = styled.img`
   }
 `;
 
+/* 未登录时的头像占位符（User 图标） */
+const LogoAvatarPlaceholder = styled.div`
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3e8ee;
+  color: #9ca3af;
+  transition: transform 0.3s ease;
+
+  &.initial {
+    animation: ${scaleIn} 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
+  }
+
+  &.shaking {
+    animation: ${shake} 0.5s ease-in-out !important;
+  }
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+`;
+
 const AvatarArea = styled.div`
   position: relative;
   cursor: pointer;
@@ -618,18 +644,26 @@ export default function Navbar() {
     setTooltipOpen(false);
   };
 
-  const avatarSrc = loginResult?.avatarUrl || 'https://api.dicebear.com/7.x/adventurer/svg?seed=guest&backgroundColor=eef2ff';
+  const avatarSrc = loginResult?.avatarUrl || '';
   const displayName = loginResult?.username || '';
 
   return (
     <NavContainer isScrolled={isScrolled}>
       <AvatarArea ref={avatarAreaRef} onClick={handleAvatarClick}>
         <AvatarInner>
-          <LogoAvatar
-            src={avatarSrc}
-            alt="avatar"
-            className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
-          />
+          {avatarSrc ? (
+            <LogoAvatar
+              src={avatarSrc}
+              alt="avatar"
+              className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
+            />
+          ) : (
+            <LogoAvatarPlaceholder
+              className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
+            >
+              <User />
+            </LogoAvatarPlaceholder>
+          )}
           <SiteTitle>{displayName}</SiteTitle>
         </AvatarInner>
         {tooltipOpen && loginResult && (
