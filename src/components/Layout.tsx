@@ -86,7 +86,7 @@ const InnerWrapper = styled.div<{ phase: 'entering' | 'exiting' | 'idle' }>`
 /* 双栏布局（含右侧栏） */
 const DualLayout = styled.div`
   width: 100%;
-  padding: ${theme.spacing.xl} 40px;
+  padding: ${theme.spacing.md} 40px;
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: ${theme.spacing.xl};
@@ -94,7 +94,7 @@ const DualLayout = styled.div`
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
-    padding: ${theme.spacing['2xl']} ${theme.spacing.md};
+    padding: ${theme.spacing.lg} ${theme.spacing.md};
   }
 `;
 
@@ -130,10 +130,10 @@ const StickyCard = styled.div`
 /* 全宽布局（关于页面） */
 const FullLayout = styled.div`
   width: 100%;
-  padding: ${theme.spacing.xl} 40px;
+  padding: ${theme.spacing.md} 40px;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
-    padding: ${theme.spacing['2xl']} ${theme.spacing.md};
+    padding: ${theme.spacing.lg} ${theme.spacing.md};
   }
 `;
 

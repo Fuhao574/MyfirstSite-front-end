@@ -151,7 +151,12 @@ const LogoAvatar = styled.img`
   border-radius: ${theme.borderRadius.md};
   object-fit: cover;
   display: block;
+  cursor: pointer;
   transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.15);
+  }
 
   &.initial {
     animation: ${scaleIn} 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
@@ -172,7 +177,12 @@ const LogoAvatarPlaceholder = styled.div`
   justify-content: center;
   background: #e3e8ee;
   color: #9ca3af;
+  cursor: pointer;
   transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.15);
+  }
 
   &.initial {
     animation: ${scaleIn} 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;
@@ -200,11 +210,6 @@ const AvatarInner = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing.sm};
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
 `;
 
 const SiteTitle = styled.span`
@@ -216,6 +221,9 @@ const SiteTitle = styled.span`
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
+  pointer-events: auto;
+  cursor: text;
+  user-select: text;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     font-size: 15px;
@@ -649,22 +657,24 @@ export default function Navbar() {
 
   return (
     <NavContainer isScrolled={isScrolled}>
-      <AvatarArea ref={avatarAreaRef} onClick={handleAvatarClick}>
+      <AvatarArea ref={avatarAreaRef}>
         <AvatarInner>
           {avatarSrc ? (
             <LogoAvatar
               src={avatarSrc}
               alt="avatar"
               className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
+              onClick={handleAvatarClick}
             />
           ) : (
             <LogoAvatarPlaceholder
               className={`${initial ? 'initial' : ''} ${shaking ? 'shaking' : ''}`}
+              onClick={handleAvatarClick}
             >
               <User />
             </LogoAvatarPlaceholder>
           )}
-          <SiteTitle>{displayName}</SiteTitle>
+          <SiteTitle onClick={(e) => e.stopPropagation()}>{displayName}</SiteTitle>
         </AvatarInner>
         {tooltipOpen && loginResult && (
           <UserTooltip mode={loginResult.mode} username={loginResult.username || '未设置'} />
