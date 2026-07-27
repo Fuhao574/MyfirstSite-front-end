@@ -143,7 +143,7 @@ const SOCIAL_LINKS = [
 export default function ProfileCard() {
   return (
     <ProfileWrapper>
-      <Avatar src="/avatar.jpg" alt="Fuhao574 的头像" />
+      <Avatar src="https://q2.qlogo.cn/headimg_dl?dst_uin=963155227&spec=0" alt="Fuhao574 的头像" />
       <Content>
         <Name>Fuhao574</Name>
         <Signature>The World Has No Shortage Of Adults</Signature>
