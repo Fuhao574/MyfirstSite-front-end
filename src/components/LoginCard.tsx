@@ -788,7 +788,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
     if (!isEmailValid(friendEmail) || codeCooldown > 0 || codeSending) return;
     setCodeSending(true);
     try {
-      const res = await fetch('/api/send-code.php', {
+      const res = await fetch('https://api.fuhao574.cyou/send-code.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: friendEmail }),
@@ -836,7 +836,7 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
       if (!isEmailValid(friendEmail) || !friendCode) return;
       setLoading(true);
       try {
-        const res = await fetch('/api/login.php', {
+        const res = await fetch('https://api.fuhao574.cyou/login.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: friendEmail, code: friendCode }),

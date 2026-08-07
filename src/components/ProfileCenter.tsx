@@ -425,7 +425,7 @@ export default function ProfileCenter({
   const handleSendEmailCode = async () => {
     if (!isEmailValid(newEmail) || emailCodeCooldown > 0) return;
     try {
-      const res = await fetch('/api/send-code.php', {
+      const res = await fetch('https://api.fuhao574.cyou/send-code.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newEmail }),
