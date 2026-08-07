@@ -23,6 +23,8 @@ function App() {
   // 全局禁止所有 input/textarea 输入空格
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 中文输入法组字期间不拦截按键（空格用于选词等）
+      if (e.isComposing || e.keyCode === 229) return;
       if (
         e.key === ' ' &&
         (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)

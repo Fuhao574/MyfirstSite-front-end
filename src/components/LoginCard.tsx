@@ -707,6 +707,8 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
   const [closing, setClosing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toastIdRef = useRef(0);
+  // IME 组字状态追踪（中文输入法等）
+  const composingRef = useRef(false);
 
   // 显示提示（3秒后自动消失，支持堆叠）
   const showToast = (msg: string, type: ToastType = 'info') => {
@@ -954,7 +956,15 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     value={visitorName}
                     placeholder="在此输入您的昵称..."
                     maxLength={13}
-                    onChange={(e) => setVisitorName(e.target.value.replace(/\s/g, ''))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setVisitorName(composingRef.current ? val : val.replace(/\s/g, ''));
+                    }}
+                    onCompositionStart={() => { composingRef.current = true; }}
+                    onCompositionEnd={(e) => {
+                      composingRef.current = false;
+                      setVisitorName((e.target as HTMLInputElement).value.replace(/\s/g, ''));
+                    }}
                   />
                 </FieldGroup>
                 <SubmitButton type="submit" disabled={!visitorName || loading} variant="visitor">
@@ -998,7 +1008,15 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                     type="email"
                     value={friendEmail}
                     placeholder="your@email.com"
-                    onChange={(e) => setFriendEmail(e.target.value.replace(/\s/g, ''))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFriendEmail(composingRef.current ? val : val.replace(/\s/g, ''));
+                    }}
+                    onCompositionStart={() => { composingRef.current = true; }}
+                    onCompositionEnd={(e) => {
+                      composingRef.current = false;
+                      setFriendEmail((e.target as HTMLInputElement).value.replace(/\s/g, ''));
+                    }}
                   />
                 </FieldGroup>
                 <FieldGroup>
@@ -1012,7 +1030,15 @@ export default function LoginCard({ onClose, onSuccess, initial }: LoginCardProp
                       value={friendCode}
                       placeholder="输入验证码"
                       maxLength={6}
-                      onChange={(e) => setFriendCode(e.target.value.replace(/\D/g, ''))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFriendCode(composingRef.current ? val : val.replace(/\D/g, ''));
+                      }}
+                      onCompositionStart={() => { composingRef.current = true; }}
+                      onCompositionEnd={(e) => {
+                        composingRef.current = false;
+                        setFriendCode((e.target as HTMLInputElement).value.replace(/\D/g, ''));
+                      }}
                     />
                     <SendCodeButton
                       type="button"

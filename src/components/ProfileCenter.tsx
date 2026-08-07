@@ -373,6 +373,8 @@ export default function ProfileCenter({
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // IME 组字状态追踪（中文输入法等）
+  const composingRef = useRef(false);
 
   const isFriend = loginResult.mode === 'friend';
   const isEmailValid = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -593,7 +595,15 @@ export default function ProfileCenter({
                   <FieldRow>
                     <FieldInput
                       value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value.replace(/\s/g, ''))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewEmail(composingRef.current ? val : val.replace(/\s/g, ''));
+                      }}
+                      onCompositionStart={() => { composingRef.current = true; }}
+                      onCompositionEnd={(e) => {
+                        composingRef.current = false;
+                        setNewEmail((e.target as HTMLInputElement).value.replace(/\s/g, ''));
+                      }}
                       placeholder="输入新邮箱地址"
                     />
                     <SendCodeBtn
@@ -613,7 +623,15 @@ export default function ProfileCenter({
                     </FieldLabel>
                     <FieldInput
                       value={emailCode}
-                      onChange={(e) => setEmailCode(e.target.value.replace(/\s/g, ''))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEmailCode(composingRef.current ? val : val.replace(/\s/g, ''));
+                      }}
+                      onCompositionStart={() => { composingRef.current = true; }}
+                      onCompositionEnd={(e) => {
+                        composingRef.current = false;
+                        setEmailCode((e.target as HTMLInputElement).value.replace(/\s/g, ''));
+                      }}
                       placeholder="输入验证码"
                       maxLength={6}
                     />
