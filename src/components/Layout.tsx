@@ -1,10 +1,10 @@
 /**
  * 页面布局组件 - 导航栏 + 内容区域
- * 主页/博客/项目/归档/友链：双栏（左侧内容 + 右侧共享侧边栏）
- * 关于页面：全宽（无侧边栏）
+ * 主页：全宽（无侧边栏）
+ * 博客/项目/归档/友链/关于：双栏（左侧内容 + 右侧共享侧边栏）
  * 切换动画：
  *   - 双栏页面之间切换 → 只动画左栏（InnerWrapper），右栏不动
- *   - 涉及关于页面 → 整体抽离/推入（OuterWrapper 动画全部内容）
+ *   - 涉及主页 → 整体抽离/推入（OuterWrapper 动画全部内容）
  *
  * 关键设计：始终使用单一渲染结构（无双分支），OuterWrapper 和 InnerWrapper
  * 始终位于相同 DOM 位置，避免 React 卸载/重建组件导致动画闪烁。
@@ -71,7 +71,7 @@ const animStyle = (phase: 'entering' | 'exiting' | 'idle') => {
   return css`animation: ${anim} 0.35s cubic-bezier(0.25, 0.1, 0.25, 1.0) both;`;
 };
 
-/* 外层动画包裹：About 页面切换时整体动画（含侧边栏） */
+/* 外层动画包裹：主页切换时整体动画（含侧边栏） */
 const OuterWrapper = styled.div<{ phase: 'entering' | 'exiting' | 'idle' }>`
   width: 100%;
   ${({ phase }) => animStyle(phase)}
@@ -127,7 +127,7 @@ const StickyCard = styled.div`
   }
 `;
 
-/* 全宽布局（关于页面） */
+/* 全宽布局（主页） */
 const FullLayout = styled.div`
   width: 100%;
   padding: ${theme.spacing.md} 40px;
@@ -150,8 +150,8 @@ export default function Layout() {
   // 同步检测路由变化：在渲染期间设置 phase='exiting' 和过渡类型
   // React 会丢弃本次渲染输出并立即用新 state 重新渲染，浏览器不会看到旧状态
   if (location.pathname !== committedPath.current) {
-    const oldAbout = committedPath.current === '/about';
-    const newAbout = location.pathname === '/about';
+    const oldAbout = committedPath.current === '/';
+    const newAbout = location.pathname === '/';
     transitionTypeRef.current = (oldAbout || newAbout) ? 'about' : 'left-only';
     if (phase === 'entering') {
       setPhase('exiting');
@@ -182,12 +182,12 @@ export default function Layout() {
 
   // 用 committedPath 决定布局（退出阶段保持旧布局，进入阶段用新布局）
   const committedPathStr = committedPath.current;
-  const showFullLayout = committedPathStr === '/about';
+  const showFullLayout = committedPathStr === '/';
 
   // 博客详情页：路径匹配 /blog/:postId（但不匹配 /blog 本身）
   const isBlogDetail = /^\/blog\/[^/]+/.test(committedPathStr);
 
-  // 当前过渡是否涉及 About 页面（整个过渡期间不变）
+  // 当前过渡是否涉及主页（整个过渡期间不变）
   const aboutTransition = transitionTypeRef.current === 'about';
 
   // 右侧栏内容：博客详情页显示 TocCard（替代 CalendarCard），其他页面显示 CalendarCard
